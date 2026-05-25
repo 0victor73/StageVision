@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Panel, Group, Separator } from "react-resizable-panels";
 import "./App.css";
-
-interface MediaItem {
-  id: string;
-  name: string;
-  type: "image" | "video" | "audio" | "slide";
-  content?: string;
-  duration?: string;
-}
-
-const INITIAL_MEDIA: MediaItem[] = [
-  { id: "1", name: "🌅 Abertura Culto.jpg", type: "image", content: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=800&q=80" },
-  { id: "2", name: "📹 Motion Loop.mp4", type: "video" },
-  { id: "3", name: "🎵 Instrumental de Adoração.mp3", type: "audio", duration: "05:12" },
-  { id: "4", name: "📝 Versículo do Dia (Sl 23).txt", type: "slide", content: "O Senhor é o meu pastor,\nnada me faltará.\n\n— Salmo 23:1" },
-  { id: "5", name: "🌅 Encerramento Culto.png", type: "image", content: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" },
-];
+import { DatabaseService } from "./services/DatabaseService";
+import type { MediaItem } from "./services/DatabaseService";
+import { WindowManagementService } from "./services/WindowManagementService";
 
 export default function App() {
-  const [mediaList, setMediaList] = useState<MediaItem[]>(INITIAL_MEDIA);
+  const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [previewMedia, setPreviewMedia] = useState<MediaItem | null>(null);
   const [programMedia, setProgramMedia] = useState<MediaItem | null>(null);
 
@@ -32,6 +19,48 @@ export default function App() {
   const [newMediaType, setNewMediaType] = useState<MediaItem["type"]>("image");
   const [newMediaContent, setNewMediaContent] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | MediaItem["type"]>("all");
+
+  // Detecção da Janela de Projeção
+  const isProjectionMode = typeof window !== "undefined" && window.location.search.includes("projection=true");
+
+  const [projMedia, setProjMedia] = useState<MediaItem | null>(null);
+  const [testText, setTestText] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [activeSettingsTab, setActiveSettingsTab] = useState("Geral");
+
+  // Carrega as mídias da base de dados/SQLite mock usando a query de busca FTS5
+  useEffect(() => {
+    DatabaseService.searchSongs(searchQuery).then(list => setMediaList(list));
+  }, [searchQuery]);
+
+  // Escuta os comandos na Janela 2 (Projeção)
+  useEffect(() => {
+    if (!isProjectionMode) return;
+    const channel = WindowManagementService.getChannel();
+    channel.onmessage = (event) => {
+      const { action, payload } = event.data;
+      if (action === "update_media") {
+        setProjMedia(payload);
+        setTestText("");
+      } else if (action === "update_text") {
+        setProjMedia(null);
+        setTestText(payload);
+      }
+    };
+    return () => WindowManagementService.closeChannel();
+  }, [isProjectionMode]);
+
+  // Transmite as mídias da Janela 1 (Painel do Operador) para a Janela 2
+  useEffect(() => {
+    if (isProjectionMode) return;
+    WindowManagementService.sendMedia(programMedia);
+  }, [programMedia, isProjectionMode]);
+
+  // Função para abrir a Janela 2 (Projeção)
+  const openProjectionWindow = () => {
+    WindowManagementService.openProjectionWindow();
+  };
 
   // Relógio
   const [clock, setClock] = useState("00:00:00");
@@ -57,17 +86,17 @@ export default function App() {
   // Ações
   const selectMedia = (item: MediaItem) => { if (!isTransitioning) setPreviewMedia(item); };
 
-  const addMedia = (e: React.FormEvent) => {
+  const addMedia = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMediaName.trim()) return;
-    const ext = { image: "jpg", video: "mp4", audio: "mp3", slide: "txt" }[newMediaType];
-    setMediaList(prev => [...prev, {
-      id: String(Date.now()),
+    const ext = { image: "jpg", video: "mp4", audio: "mp3", slide: "txt", music: "mp3", sequence: "seq", collection: "col" }[newMediaType];
+    const item = await DatabaseService.addMedia({
       name: newMediaName.includes(".") ? newMediaName : `${newMediaName}.${ext}`,
       type: newMediaType,
       content: newMediaContent || undefined,
       duration: newMediaType === "audio" ? "03:45" : undefined,
-    }]);
+    });
+    setMediaList(prev => [...prev, item]);
     setNewMediaName(""); setNewMediaContent(""); setShowAddForm(false);
   };
 
@@ -92,6 +121,29 @@ export default function App() {
     requestAnimationFrame(tick);
   };
 
+  // Suporte a Teclas de Atalho (Hotkeys) para a Equipe de Projeção
+  useEffect(() => {
+    if (isProjectionMode) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const active = document.activeElement;
+      if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT")) {
+        return;
+      }
+      if (e.code === "Space") {
+        e.preventDefault();
+        executeFade();
+      } else if (e.code === "Enter") {
+        e.preventDefault();
+        executeCut();
+      } else if (e.code === "Escape") {
+        e.preventDefault();
+        setProgramMedia(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewMedia, programMedia, isTransitioning, isProjectionMode]);
+
   // Ícones
   const Icon = ({ type, size = 13 }: { type: MediaItem["type"]; size?: number }) => {
     const p: Record<MediaItem["type"], string> = {
@@ -99,6 +151,9 @@ export default function App() {
       video: "M23 7l-7 5 7 5V7zM1 5h15v14H1z",
       audio: "M9 18V5l12-2v13M6 21a3 3 0 100-6 3 3 0 000 6zM18 19a3 3 0 100-6 3 3 0 000 6",
       slide: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+      music: "M9 18V5l12-2v13M6 21a3 3 0 100-6 3 3 0 000 6zM18 19a3 3 0 100-6 3 3 0 000 6",
+      sequence: "M4 6h16M4 12h16M4 18h16",
+      collection: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z",
     };
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -151,6 +206,36 @@ export default function App() {
     );
   };
 
+  // Se for a Janela de Projeção (Janela 2) - Modo Tela Cheia/Projetor Nativo
+  if (isProjectionMode) {
+    return (
+      <div style={{
+        width: "100vw",
+        height: "100vh",
+        background: "#000",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        position: "relative"
+      }}>
+        {testText ? (
+          <div style={{
+            color: "#00ffee",
+            fontSize: "clamp(24px, 5vw, 64px)",
+            fontWeight: "bold",
+            textAlign: "center",
+            fontFamily: "system-ui, sans-serif"
+          }}>
+            {testText}
+          </div>
+        ) : (
+          <Screen item={projMedia} />
+        )}
+      </div>
+    );
+  }
+
   // ─────────────────────────────────────────
   return (
     <div style={{ height: "100%", background: "#0b0b0d", color: "#e2e8f0", display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -158,16 +243,41 @@ export default function App() {
       {/* ── TITLEBAR ── */}
       <div style={{ height: 42, flexShrink: 0, padding: "0 16px", background: "#0f0f11", borderBottom: "1px solid #1c1c22", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 22, height: 22, borderRadius: 5, background: "linear-gradient(135deg,#FED700,#b29600)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 8px rgba(254,215,0,0.35)" }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="black"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-          </div>
+          <img src="/StageVision.png" alt="Logo" style={{ width: 22, height: 22, objectFit: "contain", borderRadius: 4 }} />
           <h2 style={{ margin: 0, fontSize: 13, fontWeight: 700, letterSpacing: 1, color: "#fff" }}>
-            Stage<span style={{ color: "#FED700" }}>Vision</span>
+            Stage<span style={{ color: "#00ffee" }}>Vision</span>
           </h2>
           <span style={{ fontSize: 9, background: "#1c1c22", color: "#555", padding: "1px 5px", borderRadius: 3 }}>v1.2</span>
+          
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            style={{ marginLeft: 6, background: "transparent", border: "none", color: "#aaa", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 4, borderRadius: 4 }}
+            title="Configurações"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <div style={{ fontSize: 12, fontFamily: "monospace", fontWeight: 700, color: "#FED700", background: "#1a1810", padding: "3px 9px", borderRadius: 4, border: "1px solid #332b00" }}>
+          <button onClick={openProjectionWindow}
+            style={{
+              background: "#0a1b1a",
+              border: "1px solid #003330",
+              borderRadius: 6,
+              color: "#00ffee",
+              padding: "5px 10px",
+              fontSize: 10,
+              fontWeight: 800,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 4
+            }}>
+            <span>🖥️</span> PROJETAR
+          </button>
+          <div style={{ fontSize: 12, fontFamily: "monospace", fontWeight: 700, color: "#00ffee", background: "#0a1b1a", padding: "3px 9px", borderRadius: 4, border: "1px solid #003330" }}>
             {clock}
           </div>
         </div>
@@ -195,14 +305,14 @@ export default function App() {
               {/* Header */}
               <div style={{ padding: "10px 13px", borderBottom: "1px solid #1c1c22", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FED700" strokeWidth="2.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00ffee" strokeWidth="2.5">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                   </svg>
                   <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1, color: "#aaa", fontWeight: 700 }}>Biblioteca</span>
                 </div>
                 <button onClick={() => setShowAddForm(!showAddForm)}
-                  style={{ background: showAddForm ? "#ef4444" : "linear-gradient(135deg,#FED700,#b29600)", border: "none", color: showAddForm ? "white" : "black", fontWeight: "bold", width: 18, height: 18, borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, lineHeight: 1, flexShrink: 0 }}>
-                  {showAddForm ? "×" : "+"}
+                  style={{ background: showAddForm ? "#ef4444" : "linear-gradient(135deg,#00ffee,#00b2a6)", border: "none", color: showAddForm ? "white" : "black", fontWeight: "bold", width: 100, height: 28, borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, lineHeight: 1, flexShrink: 0 }}>
+                  {showAddForm ? "×" : "Adicionar +"}
                 </button>
               </div>
 
@@ -217,28 +327,42 @@ export default function App() {
                     <option value="video">Vídeo</option>
                     <option value="audio">Áudio</option>
                     <option value="slide">Slide</option>
+                    <option value="music">Música</option>
+                    <option value="sequence">Sequência</option>
+                    <option value="collection">Coleção</option>
                   </select>
                   {(newMediaType === "slide" || newMediaType === "image") && (
                     <textarea value={newMediaContent} onChange={e => setNewMediaContent(e.target.value)}
                       placeholder={newMediaType === "slide" ? "Texto..." : "URL da imagem"}
                       style={{ padding: "4px 7px", fontSize: 10, background: "#0b0b0d", border: "1px solid #333", borderRadius: 4, color: "white", outline: "none", resize: "none", height: 40, width: "100%" }} />
                   )}
-                  <button type="submit" style={{ padding: "5px 0", background: "#FED700", border: "none", color: "black", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>
+                  <button type="submit" style={{ padding: "5px 0", background: "#00ffee", border: "none", color: "black", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>
                     ADICIONAR
                   </button>
                 </form>
               )}
 
+              {/* Busca */}
+              <div style={{ padding: "6px 8px", background: "#0b0b0d", borderBottom: "1px solid #1c1c22", flexShrink: 0 }}>
+                <input 
+                  type="text" 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  placeholder="Buscar na biblioteca (FTS5)..."
+                  style={{ width: "100%", padding: "5px 8px", fontSize: 10, background: "#1a1a22", border: "1px solid #333", borderRadius: 4, color: "white", outline: "none" }}
+                />
+              </div>
+
               {/* Filtros */}
               <div style={{ display: "flex", gap: 3, padding: "6px 8px", overflowX: "auto", flexShrink: 0, borderBottom: "1px solid #161618", background: "#0f0f12" }}>
-                {(["all", "image", "video", "audio", "slide"] as const).map(cat => (
+                {(["all", "image", "video", "slide", "audio", "music", "sequence", "collection"] as const).map(cat => (
                   <button key={cat} onClick={() => setActiveCategory(cat)}
                     style={{
                       padding: "3px 7px", fontSize: 8, fontWeight: 700, textTransform: "uppercase", borderRadius: 10, border: "none", cursor: "pointer", flexShrink: 0,
-                      background: activeCategory === cat ? "#FED700" : "#1e1e26",
+                      background: activeCategory === cat ? "#00ffee" : "#1e1e26",
                       color: activeCategory === cat ? "black" : "#aaa", transition: "all 0.15s"
                     }}>
-                    {cat === "all" ? "Todos" : cat === "image" ? "IMG" : cat === "video" ? "VID" : cat === "audio" ? "ÁUD" : "SLD"}
+                    {cat === "all" ? "TODOS" : cat === "image" ? "IMAGEM" : cat === "video" ? "VÍDEO" : cat === "slide" ? "SLIDE" : cat === "audio" ? "ÁUDIO" : cat === "music" ? "MÚSICA" : cat === "sequence" ? "SEQUÊNCIA" : "COLEÇÃO"}
                   </button>
                 ))}
               </div>
@@ -246,32 +370,33 @@ export default function App() {
               {/* Lista */}
               <div style={{ overflowY: "auto", flex: 1, padding: 7, display: "flex", flexDirection: "column", gap: 4 }}>
                 {filtered.length > 0 ? filtered.map(item => {
-                  const isPrev = previewMedia?.id === item.id;
-                  const isLive = programMedia?.id === item.id;
                   return (
                     <div key={item.id} onClick={() => selectMedia(item)} className="media-item"
                       style={{
-                        padding: "7px 9px", background: isLive ? "rgba(239,68,68,0.07)" : isPrev ? "rgba(16,185,129,0.07)" : "#1a1a22",
-                        borderLeft: `3px solid ${isLive ? "#ef4444" : isPrev ? "#10b981" : "transparent"}`,
-                        borderRadius: 5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6
+                        padding: "7px 9px",
+                        background: "#1a1a22",
+                        borderRadius: 5,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 6
                       }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
-                        <span style={{ color: isLive ? "#ef4444" : isPrev ? "#10b981" : "#555", flexShrink: 0, display: "flex" }}>
+                        <span style={{ color: "#888", flexShrink: 0, display: "flex" }}>
                           <Icon type={item.type} />
                         </span>
                         <span style={{
-                          fontSize: 11, fontWeight: isPrev || isLive ? 700 : 400,
-                          color: isLive ? "#ef4444" : isPrev ? "#10b981" : "#ccc",
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
+                          fontSize: 11,
+                          color: "#ccc",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
                         }}>
                           {item.name}
                         </span>
                       </div>
-                      {isLive
-                        ? <span style={{ fontSize: 7, fontWeight: 800, color: "#ef4444", border: "1px solid #ef4444", padding: "1px 3px", borderRadius: 3, flexShrink: 0 }}>LIVE</span>
-                        : isPrev
-                          ? <span style={{ fontSize: 7, fontWeight: 800, color: "#10b981", border: "1px solid #10b981", padding: "1px 3px", borderRadius: 3, flexShrink: 0 }}>PREV</span>
-                          : <span style={{ fontSize: 9, color: "#3a3a3a", flexShrink: 0 }}>{item.duration ?? "—"}</span>}
+                      <span style={{ fontSize: 9, color: "#555", flexShrink: 0 }}>{item.duration ?? "—"}</span>
                     </div>
                   );
                 }) : (
@@ -279,10 +404,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Dica */}
-              <div style={{ padding: "7px 12px", borderTop: "1px solid #1c1c22", flexShrink: 0, fontSize: 9, color: "#444", lineHeight: 1.5 }}>
-                💡 Clique → <b style={{ color: "#888" }}>PREV</b> → <b style={{ color: "#FED700" }}>CUT</b> / <b style={{ color: "#FED700" }}>FADE</b>
-              </div>
             </Panel>
 
             {/* Separador vertical (biblioteca ↔ monitores) */}
@@ -301,10 +422,6 @@ export default function App() {
                     <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "#888" }}>
                       PREVIEW
                     </span>
-                    {previewMedia && (
-                      <button onClick={() => setPreviewMedia(null)}
-                        style={{ background: "none", border: "none", color: "#444", fontSize: 9, cursor: "pointer", padding: 0 }}>CLEAR</button>
-                    )}
                   </div>
                   {/* Screen container wrapping responsive aspect-ratio box */}
                   <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", containerType: "size" }}>
@@ -313,7 +430,7 @@ export default function App() {
                       height: "min(100cqh, calc(100cqw * 9 / 16))",
                       position: "relative",
                       border: "1px solid #2e2e38",
-                      borderRadius: 6,
+                      borderRadius: 0,
                       overflow: "hidden",
                       background: "#000"
                     }}>
@@ -322,24 +439,24 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* BOTÕES CUT / FADE */}
+                {/* BOTÕES CUT / FADE / FTB */}
                 <div style={{ width: 72, flexShrink: 0, display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
-                  <button onClick={executeCut} disabled={isTransitioning} className="btn-transition"
+                  <button onClick={executeFade} disabled={isTransitioning}
                     style={{
-                      width: "100%", padding: "11px 0", background: "linear-gradient(180deg,#2d2d38,#1c1c24)",
+                      width: "100%", padding: "11px 0",
+                      background: isTransitioning ? "#004a45" : "#00ffee",
+                      border: "none", borderRadius: 6, color: isTransitioning ? "#888" : "black", fontWeight: 800, fontSize: 11, letterSpacing: 1,
+                      cursor: isTransitioning ? "not-allowed" : "pointer"
+                    }}>
+                    Play
+                  </button>
+                  <button onClick={executeCut} disabled={isTransitioning}
+                    style={{
+                      width: "100%", padding: "11px 0", background: "#1c1c24",
                       border: "1px solid #3a3a44", borderRadius: 6, color: "white", fontWeight: 800, fontSize: 11, letterSpacing: 1,
                       cursor: isTransitioning ? "not-allowed" : "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.5)"
                     }}>
                     CUT
-                  </button>
-                  <button onClick={executeFade} disabled={isTransitioning} className="btn-transition"
-                    style={{
-                      width: "100%", padding: "11px 0",
-                      background: isTransitioning ? "linear-gradient(135deg,#4a3e00,#6b5b00)" : "linear-gradient(135deg,#FED700,#b29600)",
-                      border: "none", borderRadius: 6, color: isTransitioning ? "#888" : "black", fontWeight: 800, fontSize: 11, letterSpacing: 1,
-                      cursor: isTransitioning ? "not-allowed" : "pointer", boxShadow: "0 2px 10px rgba(254,215,0,0.3)"
-                    }}>
-                    FADE
                   </button>
                 </div>
 
@@ -349,10 +466,16 @@ export default function App() {
                     <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "#888" }}>
                       PROGRAM
                     </span>
-                    {programMedia && (
+                    <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={() => setProgramMedia(null)}
-                        style={{ background: "none", border: "none", color: "#444", fontSize: 9, cursor: "pointer", padding: 0 }}>BLACK</button>
-                    )}
+                        style={{ background: "#585858", borderRadius: 6, border: "none", color: "#ffffff", fontSize: 9, cursor: "pointer", padding: "4px 8px", fontWeight: "bold" }}>
+                        FTB
+                      </button>
+                      <button onClick={() => setProgramMedia(null)}
+                        style={{ background: "#585858", borderRadius: 6, border: "none", color: "#ffffff", fontSize: 9, cursor: "pointer", padding: "4px 8px", fontWeight: "bold" }}>
+                        LIMPAR
+                      </button>
+                    </div>
                   </div>
                   {/* Screen container wrapping responsive aspect-ratio box */}
                   <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", containerType: "size" }}>
@@ -361,7 +484,7 @@ export default function App() {
                       height: "min(100cqh, calc(100cqw * 9 / 16))",
                       position: "relative",
                       border: "1px solid #2e2e38",
-                      borderRadius: 6,
+                      borderRadius: 0,
                       overflow: "hidden",
                       background: "#000"
                     }}>
@@ -418,6 +541,94 @@ export default function App() {
         </Panel>{/* fim bottom-panel */}
 
       </Group>{/* fim root-v */}
+
+      {/* ── SETTINGS MODAL ── */}
+      {isSettingsOpen && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 1000,
+          background: "rgba(0, 0, 0, 0.65)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center"
+        }}>
+          <div style={{
+            width: "85vw", maxWidth: 900, height: "80vh", maxHeight: 650,
+            background: "#18181b", borderRadius: 12, border: "1px solid #27272a",
+            display: "flex", flexDirection: "column", overflow: "hidden",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)"
+          }}>
+            {/* Modal Header */}
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #27272a", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1f1f23" }}>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#eee" }}>Configurações - {activeSettingsTab}</h3>
+              <button onClick={() => setIsSettingsOpen(false)} style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+              {/* Sidebar */}
+              <div style={{ width: 220, background: "#18181b", borderRight: "1px solid #27272a", padding: "16px 0", overflowY: "auto" }}>
+                {(["Geral", "Conta", "Permissões", "Aparência", "Notificações", "Atalhos", "Avançado"]).map(tab => (
+                  <button 
+                    key={tab}
+                    onClick={() => setActiveSettingsTab(tab)}
+                    style={{
+                      width: "100%", textAlign: "left", padding: "8px 24px",
+                      background: activeSettingsTab === tab ? "#27272a" : "transparent",
+                      border: "none", color: activeSettingsTab === tab ? "#00ffee" : "#a1a1aa",
+                      fontSize: 13, cursor: "pointer", transition: "background 0.2s"
+                    }}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Content Area */}
+              <div style={{ flex: 1, background: "#131316", padding: 32, overflowY: "auto" }}>
+                <h4 style={{ margin: "0 0 24px 0", color: "#fff", fontSize: 16, fontWeight: 500 }}>Opções de {activeSettingsTab}</h4>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #27272a" }}>
+                    <div>
+                      <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Tema Escuro Profundo</div>
+                      <div style={{ color: "#888", fontSize: 12 }}>Utiliza tons de preto absoluto (#000) para economizar bateria em telas OLED.</div>
+                    </div>
+                    <div style={{ width: 44, height: 24, background: "#00ffee", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                      <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #27272a" }}>
+                    <div>
+                      <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Aceleração de Hardware</div>
+                      <div style={{ color: "#888", fontSize: 12 }}>Usa a GPU para renderizar transições suaves sem sobrecarregar a CPU.</div>
+                    </div>
+                    <div style={{ width: 44, height: 24, background: "#00ffee", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                      <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: "14px 24px", borderTop: "1px solid #27272a", background: "#18181b", display: "flex", justifyContent: "flex-end", gap: 12 }}>
+              <button 
+                onClick={() => setIsSettingsOpen(false)}
+                style={{ padding: "8px 16px", background: "transparent", border: "1px solid #3f3f46", color: "#e4e4e7", borderRadius: 6, fontSize: 13, cursor: "pointer" }}
+              >
+                Fechar sem Salvar
+              </button>
+              <button 
+                onClick={() => setIsSettingsOpen(false)}
+                style={{ padding: "8px 16px", background: "#00ffee", border: "none", color: "#000", fontWeight: 600, borderRadius: 6, fontSize: 13, cursor: "pointer" }}
+              >
+                Salvar Alterações
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -28,9 +28,9 @@ body {
   --bg: #fff;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
-  --accent: #FED700;
-  --accent-bg: rgba(254, 215, 0, 0.1);
-  --accent-border: #FED700;
+  --accent: #00ffee;
+  --accent-bg: rgba(0, 255, 238, 0.1);
+  --accent-border: #00ffee;
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
@@ -61,9 +61,9 @@ body {
     --bg: #16171d;
     --border: #2e303a;
     --code-bg: #1f2028;
-    --accent: #FED700;
-    --accent-bg: rgba(254, 215, 0, 0.15);
-    --accent-border: #FED700;
+    --accent: #00ffee;
+    --accent-bg: rgba(0, 255, 238, 0.15);
+    --accent-border: #00ffee;
     --social-bg: rgba(47, 48, 58, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
@@ -154,8 +154,8 @@ code {
 [data-separator]:hover,
 [data-separator][data-separator="hover"],
 [data-separator][data-separator="active"] {
-  background-color: #FED700;
-  box-shadow: 0 0 10px rgba(254, 215, 0, 0.55);
+  background-color: #00ffee;
+  box-shadow: 0 0 10px rgba(0, 255, 238, 0.55);
 }
 
 [data-separator]::after {
@@ -187,7 +187,7 @@ code {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FED700;
+  background: #00ffee;
 }
 
 /* Pulse animation for simulated video */
@@ -258,12 +258,11 @@ code {
 
 /* Micro-animations and focus */
 .media-item {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease;
 }
 
 .media-item:hover {
-  background-color: #2e2e38 !important;
-  transform: translateX(4px);
+  background-color: #252530 !important;
 }
 
 .btn-transition {
