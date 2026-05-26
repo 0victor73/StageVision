@@ -17,61 +17,51 @@ const initSchema = () => {
     );
   `);
 
+  // Recreate FTS tables to fix schema mismatch
+  db.exec(`DROP TRIGGER IF EXISTS songs_ai;`);
+  db.exec(`DROP TRIGGER IF EXISTS songs_ad;`);
+  db.exec(`DROP TRIGGER IF EXISTS songs_au;`);
+  db.exec(`DROP TABLE IF EXISTS songs_fts;`);
+
   db.exec(`
     CREATE VIRTUAL TABLE IF NOT EXISTS songs_fts USING fts5(
       title, 
       artist, 
       lyrics, 
-      content='songs', 
-      content_rowid='id'
+      content='songs'
     );
   `);
 
   db.exec(`
     CREATE TRIGGER IF NOT EXISTS songs_ai AFTER INSERT ON songs BEGIN
       INSERT INTO songs_fts(rowid, title, artist, lyrics) 
-      VALUES (new.id, new.title, new.artist, new.lyrics);
+      VALUES (new.rowid, new.title, new.artist, new.lyrics);
     END;
   `);
 
   db.exec(`
     CREATE TRIGGER IF NOT EXISTS songs_ad AFTER DELETE ON songs BEGIN
       INSERT INTO songs_fts(songs_fts, rowid, title, artist, lyrics) 
-      VALUES ('delete', old.id, old.title, old.artist, old.lyrics);
+      VALUES ('delete', old.rowid, old.title, old.artist, old.lyrics);
     END;
   `);
 
   db.exec(`
     CREATE TRIGGER IF NOT EXISTS songs_au AFTER UPDATE ON songs BEGIN
       INSERT INTO songs_fts(songs_fts, rowid, title, artist, lyrics) 
-      VALUES ('delete', old.id, old.title, old.artist, old.lyrics);
+      VALUES ('delete', old.rowid, old.title, old.artist, old.lyrics);
       INSERT INTO songs_fts(rowid, title, artist, lyrics) 
-      VALUES (new.id, new.title, new.artist, new.lyrics);
+      VALUES (new.rowid, new.title, new.artist, new.lyrics);
     END;
   `);
 };
 
 const insertMockDataIfNeeded = () => {
-  const result = db.exec({
-    sql: "SELECT count(*) as count FROM songs",
-    returnValue: "resultRows"
-  });
-  
-  if (result[0][0] === 0) {
-    const mocks = [
-      { id: "1", title: "🌅 Abertura Culto.jpg", artist: "Media", type: "image", content: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=800&q=80", duration: null, lyrics: "" },
-      { id: "2", title: "📹 Motion Loop.mp4", artist: "Media", type: "video", content: null, duration: null, lyrics: "" },
-      { id: "3", title: "🎵 Instrumental de Adoração.mp3", artist: "Audio", type: "audio", content: null, duration: "05:12", lyrics: "" },
-      { id: "4", title: "📝 Versículo do Dia (Sl 23)", artist: "Slide", type: "slide", content: "O Senhor é o meu pastor,\nnada me faltará.\n\n— Salmo 23:1", duration: null, lyrics: "O Senhor é o meu pastor, nada me faltará. Salmo 23:1" },
-      { id: "5", title: "🌅 Encerramento Culto.png", artist: "Media", type: "image", content: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", duration: null, lyrics: "" },
-    ];
-
-    for (const m of mocks) {
-      db.exec({
-        sql: "INSERT INTO songs (id, title, artist, type, content, duration, lyrics) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        bind: [m.id, m.title, m.artist, m.type, m.content, m.duration, m.lyrics]
-      });
-    }
+  // Inicialização 100% limpa a pedido do usuário
+  try {
+    db.exec("DELETE FROM songs WHERE id IN ('1', '2', '3', '4', '5')");
+  } catch (e) {
+    console.error("Erro ao limpar mocks antigos:", e);
   }
 };
 
@@ -115,6 +105,21 @@ self.onmessage = (e) => {
       });
       self.postMessage({ id, result: rows });
     } 
+    else if (action === 'debugGetAll') {
+      const rows = db.exec({
+        sql: "SELECT * FROM songs ORDER BY created_at ASC",
+        rowMode: 'object'
+      });
+      self.postMessage({ id, result: rows });
+    }
+    else if (action === 'runRawQuery') {
+      const rows = db.exec({
+        sql: payload.sql,
+        bind: payload.bind || [],
+        rowMode: 'object'
+      });
+      self.postMessage({ id, result: rows });
+    }
     else if (action === 'addSong') {
       db.exec({
         sql: "INSERT INTO songs (id, title, artist, type, content, duration, lyrics) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -131,7 +136,7 @@ self.onmessage = (e) => {
       let sql = `
         SELECT s.id, s.title as name, s.type, s.content, s.duration 
         FROM songs_fts f
-        JOIN songs s ON f.rowid = s.id
+        JOIN songs s ON f.rowid = s.rowid
         WHERE songs_fts MATCH ? 
         ORDER BY rank LIMIT 50
       `;

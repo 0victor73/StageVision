@@ -3,7 +3,7 @@ import SqliteWorker from '../workers/sqlite.worker?worker';
 export interface MediaItem {
   id: string;
   name: string;
-  type: "image" | "video" | "audio" | "slide" | "music" | "sequence" | "collection";
+  type: "image" | "video" | "audio" | "slide" | "music" | "sequence" | "collection" | "tempo" | "arquivo";
   content?: string;
   duration?: string;
   artist?: string;
@@ -86,5 +86,19 @@ export class DatabaseService {
    */
   public static async deleteMedia(id: string): Promise<boolean> {
     return this.execute<boolean>('deleteSong', { id });
+  }
+
+  /**
+   * Obtém absolutamente todas as colunas de todas as músicas para fins de debug/inspeção.
+   */
+  public static async debugGetAll(): Promise<any[]> {
+    return this.execute<any[]>('debugGetAll');
+  }
+
+  /**
+   * Executa uma query SQL direta no banco de dados SQLite (ferramenta avançada de debug).
+   */
+  public static async runRawQuery(sql: string, bind?: any[]): Promise<any[]> {
+    return this.execute<any[]>('runRawQuery', { sql, bind });
   }
 }

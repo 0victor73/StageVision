@@ -154,17 +154,25 @@ code {
 [data-separator]:hover,
 [data-separator][data-separator="hover"],
 [data-separator][data-separator="active"] {
-  background-color: #00ffee;
-  box-shadow: 0 0 10px rgba(0, 255, 238, 0.55);
+  background-color: #27272a;
+  box-shadow: none;
 }
 
 [data-separator]::after {
   content: "";
-  width: 2px;
-  height: 35px;
   background-color: #444;
   border-radius: 1px;
   transition: background-color 0.2s;
+}
+
+[data-group][style*="row"]>[data-separator]::after {
+  width: 2px;
+  height: 35px;
+}
+
+[data-group][style*="column"]>[data-separator]::after {
+  width: 35px;
+  height: 2px;
 }
 
 [data-separator]:hover::after {

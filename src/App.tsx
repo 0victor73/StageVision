@@ -5,8 +5,73 @@ import { DatabaseService } from "./services/DatabaseService";
 import type { MediaItem } from "./services/DatabaseService";
 import { WindowManagementService } from "./services/WindowManagementService";
 
+const fmt = (s: number) => `00:${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+const Icon = ({ type, size = 13 }: { type: MediaItem["type"]; size?: number }) => {
+  const p: Record<MediaItem["type"], string> = {
+    image: "M3 3h18v18H3zM3 9l4-4 5 5 3-3 5 5M15 7a1 1 0 110-2 1 1 0 010 2",
+    video: "M23 7l-7 5 7 5V7zM1 5h15v14H1z",
+    audio: "M9 18V5l12-2v13M6 21a3 3 0 100-6 3 3 0 000 6zM18 19a3 3 0 100-6 3 3 0 000 6",
+    slide: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+    music: "M9 18V5l12-2v13M6 21a3 3 0 100-6 3 3 0 000 6zM18 19a3 3 0 100-6 3 3 0 000 6",
+    sequence: "M4 6h16M4 12h16M4 18h16",
+    collection: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z",
+    tempo: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-14v6l4 2",
+    arquivo: "M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9zM13 2v7h7M9 13h6M9 17h6",
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {p[type].split("M").filter(Boolean).map((d, i) => <path key={i} d={`M${d}`} />)}
+    </svg>
+  );
+};
+
+const Screen = ({ item, playback }: { item: MediaItem | null, playback: number }) => {
+  if (!item) return (
+    <div style={{ width: "100%", height: "100%", background: "#000" }} />
+  );
+
+  if (item.type === "image") return item.content
+    ? <img src={item.content} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1e1b4b,#311042)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ color: "#666", fontSize: 10 }}>Sem URL</span>
+    </div>;
+
+  if (item.type === "video") return (
+    <div style={{ width: "100%", height: "100%", background: "linear-gradient(45deg,#020617,#0f172a)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <div className="video-glow" style={{ position: "absolute", width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle,rgba(99,102,241,0.25) 0%,transparent 70%)" }} />
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="1.5" style={{ zIndex: 2, marginBottom: 6 }}>
+        <rect x="1" y="5" width="15" height="14" rx="2" /><path d="M23 7l-7 5 7 5V7z" />
+      </svg>
+      <span style={{ fontSize: 9, color: "#6366f1", fontWeight: 600, zIndex: 2, letterSpacing: 1 }}>VÍDEO · {fmt(playback)}</span>
+      <div style={{ width: "55%", height: 2, background: "#1e1e2e", borderRadius: 1, marginTop: 7, zIndex: 2 }}>
+        <div style={{ height: "100%", width: `${(playback / 300) * 100}%`, background: "#6366f1", boxShadow: "0 0 4px #6366f1", transition: "width 1s linear" }} />
+      </div>
+    </div>
+  );
+
+  if (item.type === "audio") return (
+    <div style={{ width: "100%", height: "100%", background: "#060814", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 36, marginBottom: 8 }}>
+        {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className={`eq-bar eq-bar-${i}`} />)}
+      </div>
+      <span style={{ fontSize: 9, color: "#3b82f6", fontWeight: 600, letterSpacing: 1 }}>ÁUDIO · {fmt(playback)}</span>
+    </div>
+  );
+
+  // slide
+  return (
+    <div style={{ width: "100%", height: "100%", background: "radial-gradient(circle at center,#111827,#030712)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ color: "#f3f4f6", fontSize: "clamp(9px,1.3vw,15px)", lineHeight: 1.7, textAlign: "center", fontFamily: "Georgia,serif", whiteSpace: "pre-wrap" }}>
+        {item.content || "[Slide em branco]"}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [previewMedia, setPreviewMedia] = useState<MediaItem | null>(null);
   const [programMedia, setProgramMedia] = useState<MediaItem | null>(null);
 
@@ -15,6 +80,7 @@ export default function App() {
   const [transitionDuration] = useState(600);
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [newMediaName, setNewMediaName] = useState("");
   const [newMediaType, setNewMediaType] = useState<MediaItem["type"]>("image");
   const [newMediaContent, setNewMediaContent] = useState("");
@@ -28,6 +94,52 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState("Geral");
+
+  // Estados do Inspetor do Banco de Dados
+  const [debugDbSongs, setDebugDbSongs] = useState<any[]>([]);
+  const [selectedDebugSong, setSelectedDebugSong] = useState<any | null>(null);
+  const [rawQueryText, setRawQueryText] = useState("SELECT * FROM songs LIMIT 10;");
+  const [rawQueryResult, setRawQueryResult] = useState<any[] | null>(null);
+  const [rawQueryError, setRawQueryError] = useState<string | null>(null);
+  const [dbStats, setDbStats] = useState({ total: 0, songs: 0, slides: 0, media: 0 });
+  const [dbSubTab, setDbSubTab] = useState<"records" | "console">("records");
+
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+
+  const handleDeleteMedia = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await DatabaseService.deleteMedia(id);
+    setMediaList(prev => prev.filter(m => m.id !== id));
+    setMenuOpenId(null);
+    if (previewMedia?.id === id) setPreviewMedia(null);
+    if (programMedia?.id === id) setProgramMedia(null);
+  };
+
+  const loadDebugDb = () => {
+    DatabaseService.debugGetAll()
+      .then(rows => {
+        setDebugDbSongs(rows);
+        // Calcula estatísticas rápidas
+        const stats = { total: rows.length, songs: 0, slides: 0, media: 0 };
+        rows.forEach(r => {
+          if (r.type === 'slide') stats.slides++;
+          else if (r.type === 'image' || r.type === 'video' || r.type === 'audio') stats.media++;
+          else stats.songs++;
+        });
+        setDbStats(stats);
+      })
+      .catch(err => console.error("Erro ao carregar debug DB:", err));
+  };
+
+  // Carrega os dados de debug se a aba Banco de Dados for aberta
+  useEffect(() => {
+    if (isSettingsOpen && activeSettingsTab === "Banco de Dados") {
+      loadDebugDb();
+      setRawQueryResult(null);
+      setRawQueryError(null);
+      setSelectedDebugSong(null);
+    }
+  }, [isSettingsOpen, activeSettingsTab]);
 
   // Carrega as mídias da base de dados/SQLite mock usando a query de busca FTS5
   useEffect(() => {
@@ -78,7 +190,7 @@ export default function App() {
     const t = setInterval(() => setPlayback(p => p >= 300 ? 0 : p + 1), 1000);
     return () => clearInterval(t);
   }, []);
-  const fmt = (s: number) => `00:${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
 
   // Filtro
   const filtered = mediaList.filter(i => activeCategory === "all" || i.type === activeCategory);
@@ -89,7 +201,7 @@ export default function App() {
   const addMedia = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMediaName.trim()) return;
-    const ext = { image: "jpg", video: "mp4", audio: "mp3", slide: "txt", music: "mp3", sequence: "seq", collection: "col" }[newMediaType];
+    const ext = { image: "jpg", video: "mp4", audio: "mp3", slide: "txt", music: "mp3", sequence: "seq", collection: "col", tempo: "timer", arquivo: "bin" }[newMediaType];
     const item = await DatabaseService.addMedia({
       name: newMediaName.includes(".") ? newMediaName : `${newMediaName}.${ext}`,
       type: newMediaType,
@@ -98,6 +210,67 @@ export default function App() {
     });
     setMediaList(prev => [...prev, item]);
     setNewMediaName(""); setNewMediaContent(""); setShowAddForm(false);
+  };
+
+  const triggerFileImport = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      let type: MediaItem["type"] = "arquivo";
+      let content = "";
+      
+      // Auto-detect based on mime-type and extension
+      if (file.type.startsWith("image/")) {
+        type = "image";
+      } else if (file.type.startsWith("video/")) {
+        type = "video";
+      } else if (file.type.startsWith("audio/")) {
+        type = "audio";
+      } else if (file.name.endsWith(".txt")) {
+        type = "slide";
+      } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+        type = "arquivo";
+      }
+
+      // Convert to Base64 to save persistent offline inside SQLite WASM
+      if (type === "slide") {
+        content = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target?.result as string || "");
+          reader.readAsText(file);
+        });
+      } else if (type === "image" || type === "audio" || file.type === "application/pdf") {
+        if (file.size < 12 * 1024 * 1024) {
+          content = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => resolve(event.target?.result as string || "");
+            reader.readAsDataURL(file);
+          });
+        } else {
+          content = URL.createObjectURL(file);
+        }
+      } else {
+        content = URL.createObjectURL(file);
+      }
+
+      const item = await DatabaseService.addMedia({
+        name: file.name,
+        type,
+        content: content || undefined,
+        duration: type === "audio" ? "03:45" : undefined,
+      });
+
+      setMediaList(prev => [...prev, item]);
+    }
   };
 
   const executeCut = () => {
@@ -144,67 +317,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewMedia, programMedia, isTransitioning, isProjectionMode]);
 
-  // Ícones
-  const Icon = ({ type, size = 13 }: { type: MediaItem["type"]; size?: number }) => {
-    const p: Record<MediaItem["type"], string> = {
-      image: "M3 3h18v18H3zM3 9l4-4 5 5 3-3 5 5M15 7a1 1 0 110-2 1 1 0 010 2",
-      video: "M23 7l-7 5 7 5V7zM1 5h15v14H1z",
-      audio: "M9 18V5l12-2v13M6 21a3 3 0 100-6 3 3 0 000 6zM18 19a3 3 0 100-6 3 3 0 000 6",
-      slide: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
-      music: "M9 18V5l12-2v13M6 21a3 3 0 100-6 3 3 0 000 6zM18 19a3 3 0 100-6 3 3 0 000 6",
-      sequence: "M4 6h16M4 12h16M4 18h16",
-      collection: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z",
-    };
-    return (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {p[type].split("M").filter(Boolean).map((d, i) => <path key={i} d={`M${d}`} />)}
-      </svg>
-    );
-  };
 
-  // Conteúdo das telas
-  const Screen = ({ item }: { item: MediaItem | null }) => {
-    if (!item) return (
-      <div style={{ width: "100%", height: "100%", background: "#000" }} />
-    );
-
-    if (item.type === "image") return item.content
-      ? <img src={item.content} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1e1b4b,#311042)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: "#666", fontSize: 10 }}>Sem URL</span>
-      </div>;
-
-    if (item.type === "video") return (
-      <div style={{ width: "100%", height: "100%", background: "linear-gradient(45deg,#020617,#0f172a)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
-        <div className="video-glow" style={{ position: "absolute", width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle,rgba(99,102,241,0.25) 0%,transparent 70%)" }} />
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="1.5" style={{ zIndex: 2, marginBottom: 6 }}>
-          <rect x="1" y="5" width="15" height="14" rx="2" /><path d="M23 7l-7 5 7 5V7z" />
-        </svg>
-        <span style={{ fontSize: 9, color: "#6366f1", fontWeight: 600, zIndex: 2, letterSpacing: 1 }}>VÍDEO · {fmt(playback)}</span>
-        <div style={{ width: "55%", height: 2, background: "#1e1e2e", borderRadius: 1, marginTop: 7, zIndex: 2 }}>
-          <div style={{ height: "100%", width: `${(playback / 300) * 100}%`, background: "#6366f1", boxShadow: "0 0 4px #6366f1", transition: "width 1s linear" }} />
-        </div>
-      </div>
-    );
-
-    if (item.type === "audio") return (
-      <div style={{ width: "100%", height: "100%", background: "#060814", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 36, marginBottom: 8 }}>
-          {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className={`eq-bar eq-bar-${i}`} />)}
-        </div>
-        <span style={{ fontSize: 9, color: "#3b82f6", fontWeight: 600, letterSpacing: 1 }}>ÁUDIO · {fmt(playback)}</span>
-      </div>
-    );
-
-    // slide
-    return (
-      <div style={{ width: "100%", height: "100%", background: "radial-gradient(circle at center,#111827,#030712)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-        <div style={{ color: "#f3f4f6", fontSize: "clamp(9px,1.3vw,15px)", lineHeight: 1.7, textAlign: "center", fontFamily: "Georgia,serif", whiteSpace: "pre-wrap" }}>
-          {item.content || "[Slide em branco]"}
-        </div>
-      </div>
-    );
-  };
 
   // Se for a Janela de Projeção (Janela 2) - Modo Tela Cheia/Projetor Nativo
   if (isProjectionMode) {
@@ -230,7 +343,7 @@ export default function App() {
             {testText}
           </div>
         ) : (
-          <Screen item={projMedia} />
+          <Screen item={projMedia} playback={playback} />
         )}
       </div>
     );
@@ -239,6 +352,14 @@ export default function App() {
   // ─────────────────────────────────────────
   return (
     <div style={{ height: "100%", background: "#0b0b0d", color: "#e2e8f0", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileImport} 
+        multiple 
+        accept="image/*,video/*,audio/*,application/pdf,.txt,.doc,.docx" 
+        style={{ display: "none" }} 
+      />
 
       {/* ── TITLEBAR ── */}
       <div style={{ height: 42, flexShrink: 0, padding: "0 16px", background: "#0f0f11", borderBottom: "1px solid #1c1c22", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -248,8 +369,8 @@ export default function App() {
             Stage<span style={{ color: "#00ffee" }}>Vision</span>
           </h2>
           <span style={{ fontSize: 9, background: "#1c1c22", color: "#555", padding: "1px 5px", borderRadius: 3 }}>v1.2</span>
-          
-          <button 
+
+          <button
             onClick={() => setIsSettingsOpen(true)}
             style={{ marginLeft: 6, background: "transparent", border: "none", color: "#aaa", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 4, borderRadius: 4 }}
             title="Configurações"
@@ -310,10 +431,97 @@ export default function App() {
                   </svg>
                   <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1, color: "#aaa", fontWeight: 700 }}>Biblioteca</span>
                 </div>
-                <button onClick={() => setShowAddForm(!showAddForm)}
-                  style={{ background: showAddForm ? "#ef4444" : "linear-gradient(135deg,#00ffee,#00b2a6)", border: "none", color: showAddForm ? "white" : "black", fontWeight: "bold", width: 100, height: 28, borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, lineHeight: 1, flexShrink: 0 }}>
-                  {showAddForm ? "×" : "Adicionar +"}
-                </button>
+
+                {/* Split Dropdown Button */}
+                <div style={{ position: "relative", display: "flex", alignItems: "center", zIndex: 50 }}>
+                  {showAddForm ? (
+                    <button
+                      onClick={() => setShowAddForm(false)}
+                      style={{
+                        background: "#ef4444", border: "none", color: "white", fontWeight: "bold",
+                        width: 108, height: 28, borderRadius: 6, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, lineHeight: 1, flexShrink: 0
+                      }}
+                    >
+                      × Fechar
+                    </button>
+                  ) : (
+                    <div style={{ display: "flex", background: "#00ffee", borderRadius: 6, overflow: "hidden", border: "1px solid #00ffee", height: 28, width: 115 }}>
+                      <button
+                        onClick={triggerFileImport}
+                        style={{
+                          flex: 1, background: "transparent", border: "none", color: "black",
+                          fontWeight: 800, fontSize: 11, cursor: "pointer", outline: "none",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          padding: "0 8px"
+                        }}
+                      >
+                        Adicionar +
+                      </button>
+                      <div style={{ width: 1, background: "rgba(0, 0, 0, 0.3)", alignSelf: "stretch" }} />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAddDropdown(!showAddDropdown);
+                        }}
+                        style={{
+                          width: 24, background: "transparent", border: "none", color: "black",
+                          cursor: "pointer", outline: "none", display: "flex",
+                          alignItems: "center", justifyContent: "center", fontSize: 8
+                        }}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Dropdown Menu Overlay */}
+                  {showAddDropdown && !showAddForm && (
+                    <>
+                      <div
+                        onClick={() => setShowAddDropdown(false)}
+                        style={{ position: "fixed", inset: 0, zIndex: 999 }}
+                      />
+                      <div style={{
+                        position: "absolute", top: 32, right: 0, background: "#18181c",
+                        border: "1px solid #27272a", borderRadius: 6, width: 120,
+                        padding: "4px 0", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.5)",
+                        zIndex: 1000, display: "flex", flexDirection: "column"
+                      }}>
+                        {[
+                          { label: "Letras", type: "music" },
+                          { label: "Coleção", type: "collection" },
+                          { label: "Sequência", type: "sequence" },
+                          { label: "Tempo", type: "tempo" },
+                          { label: "Arquivo", type: "arquivo" }
+                        ].map((opt) => (
+                          <button
+                            key={opt.label}
+                            onClick={() => {
+                              if (opt.type === "arquivo") {
+                                triggerFileImport();
+                              } else {
+                                setNewMediaType(opt.type as MediaItem["type"]);
+                                setShowAddForm(true);
+                              }
+                              setShowAddDropdown(false);
+                            }}
+                            style={{
+                              background: "transparent", border: "none", color: "#e4e4e7",
+                              textAlign: "left", padding: "8px 12px", fontSize: 11,
+                              cursor: "pointer", transition: "background 0.15s"
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "#27272a"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Form */}
@@ -327,9 +535,11 @@ export default function App() {
                     <option value="video">Vídeo</option>
                     <option value="audio">Áudio</option>
                     <option value="slide">Slide</option>
-                    <option value="music">Música</option>
+                    <option value="music">Letras</option>
                     <option value="sequence">Sequência</option>
                     <option value="collection">Coleção</option>
+                    <option value="tempo">Tempo</option>
+                    <option value="arquivo">Arquivo</option>
                   </select>
                   {(newMediaType === "slide" || newMediaType === "image") && (
                     <textarea value={newMediaContent} onChange={e => setNewMediaContent(e.target.value)}
@@ -344,10 +554,10 @@ export default function App() {
 
               {/* Busca */}
               <div style={{ padding: "6px 8px", background: "#0b0b0d", borderBottom: "1px solid #1c1c22", flexShrink: 0 }}>
-                <input 
-                  type="text" 
-                  value={searchQuery} 
-                  onChange={e => setSearchQuery(e.target.value)} 
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Buscar na biblioteca (FTS5)..."
                   style={{ width: "100%", padding: "5px 8px", fontSize: 10, background: "#1a1a22", border: "1px solid #333", borderRadius: 4, color: "white", outline: "none" }}
                 />
@@ -355,14 +565,14 @@ export default function App() {
 
               {/* Filtros */}
               <div style={{ display: "flex", gap: 3, padding: "6px 8px", overflowX: "auto", flexShrink: 0, borderBottom: "1px solid #161618", background: "#0f0f12" }}>
-                {(["all", "image", "video", "slide", "audio", "music", "sequence", "collection"] as const).map(cat => (
+                {(["all", "image", "video", "slide", "audio", "music", "sequence", "collection", "tempo", "arquivo"] as const).map(cat => (
                   <button key={cat} onClick={() => setActiveCategory(cat)}
                     style={{
                       padding: "3px 7px", fontSize: 8, fontWeight: 700, textTransform: "uppercase", borderRadius: 10, border: "none", cursor: "pointer", flexShrink: 0,
                       background: activeCategory === cat ? "#00ffee" : "#1e1e26",
                       color: activeCategory === cat ? "black" : "#aaa", transition: "all 0.15s"
                     }}>
-                    {cat === "all" ? "TODOS" : cat === "image" ? "IMAGEM" : cat === "video" ? "VÍDEO" : cat === "slide" ? "SLIDE" : cat === "audio" ? "ÁUDIO" : cat === "music" ? "MÚSICA" : cat === "sequence" ? "SEQUÊNCIA" : "COLEÇÃO"}
+                    {cat === "all" ? "TODOS" : cat === "image" ? "IMAGEM" : cat === "video" ? "VÍDEO" : cat === "slide" ? "SLIDE" : cat === "audio" ? "ÁUDIO" : cat === "music" ? "LETRAS" : cat === "sequence" ? "SEQUÊNCIA" : cat === "collection" ? "COLEÇÃO" : cat === "tempo" ? "TEMPO" : "ARQUIVO"}
                   </button>
                 ))}
               </div>
@@ -396,7 +606,61 @@ export default function App() {
                           {item.name}
                         </span>
                       </div>
-                      <span style={{ fontSize: 9, color: "#555", flexShrink: 0 }}>{item.duration ?? "—"}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                        <span style={{ fontSize: 9, color: "#555" }}>{item.duration ?? "—"}</span>
+                        
+                        <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMenuOpenId(menuOpenId === item.id ? null : item.id);
+                            }}
+                            style={{
+                              background: "transparent", border: "none", color: "#888",
+                              cursor: "pointer", padding: "2px", borderRadius: 4,
+                              display: "flex", alignItems: "center", justifyContent: "center"
+                            }}
+                            title="Opções"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="5" r="1.5"></circle>
+                              <circle cx="12" cy="12" r="1.5"></circle>
+                              <circle cx="12" cy="19" r="1.5"></circle>
+                            </svg>
+                          </button>
+                          
+                          {menuOpenId === item.id && (
+                            <>
+                              <div style={{ position: "fixed", inset: 0, zIndex: 998 }} onClick={(e) => { e.stopPropagation(); setMenuOpenId(null); }} />
+                              <div style={{
+                                position: "absolute", top: "100%", right: 0, marginTop: 4,
+                                background: "#18181c", border: "1px solid #27272a", borderRadius: 6,
+                                padding: "4px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)", zIndex: 999,
+                                minWidth: 100
+                              }}>
+                                <button
+                                  onClick={(e) => handleDeleteMedia(item.id, e)}
+                                  style={{
+                                    width: "100%", background: "transparent", border: "none", color: "#ef4444",
+                                    textAlign: "left", padding: "6px 12px", fontSize: 11,
+                                    cursor: "pointer", borderRadius: 4, display: "flex", alignItems: "center", gap: 6
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = "#27272a"}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                  </svg>
+                                  Deletar
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   );
                 }) : (
@@ -434,7 +698,7 @@ export default function App() {
                       overflow: "hidden",
                       background: "#000"
                     }}>
-                      <Screen item={previewMedia} />
+                      <Screen item={previewMedia} playback={playback} />
                     </div>
                   </div>
                 </div>
@@ -488,11 +752,11 @@ export default function App() {
                       overflow: "hidden",
                       background: "#000"
                     }}>
-                      <Screen item={programMedia} />
+                      <Screen item={programMedia} playback={playback} />
                       {/* Cross-fade overlay */}
                       {(isTransitioning || transitionProgress > 0) && previewMedia && (
                         <div style={{ position: "absolute", inset: 0, opacity: transitionProgress / 100, zIndex: 5, overflow: "hidden" }}>
-                          <Screen item={previewMedia} />
+                          <Screen item={previewMedia} playback={playback} />
                         </div>
                       )}
                     </div>
@@ -567,8 +831,8 @@ export default function App() {
             <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
               {/* Sidebar */}
               <div style={{ width: 220, background: "#18181b", borderRight: "1px solid #27272a", padding: "16px 0", overflowY: "auto" }}>
-                {(["Geral", "Conta", "Permissões", "Aparência", "Notificações", "Atalhos", "Avançado"]).map(tab => (
-                  <button 
+                {(["Geral", "Conta", "Permissões", "Aparência", "Notificações", "Atalhos", "Banco de Dados", "Avançado"]).map(tab => (
+                  <button
                     key={tab}
                     onClick={() => setActiveSettingsTab(tab)}
                     style={{
@@ -584,42 +848,337 @@ export default function App() {
               </div>
 
               {/* Content Area */}
-              <div style={{ flex: 1, background: "#131316", padding: 32, overflowY: "auto" }}>
-                <h4 style={{ margin: "0 0 24px 0", color: "#fff", fontSize: 16, fontWeight: 500 }}>Opções de {activeSettingsTab}</h4>
-                
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #27272a" }}>
-                    <div>
-                      <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Tema Escuro Profundo</div>
-                      <div style={{ color: "#888", fontSize: 12 }}>Utiliza tons de preto absoluto (#000) para economizar bateria em telas OLED.</div>
-                    </div>
-                    <div style={{ width: 44, height: 24, background: "#00ffee", borderRadius: 12, position: "relative", cursor: "pointer" }}>
-                      <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
-                    </div>
-                  </div>
+              <div style={{ flex: 1, background: "#131316", padding: "24px 32px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+                <h4 style={{ margin: "0 0 16px 0", color: "#fff", fontSize: 16, fontWeight: 500, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>{activeSettingsTab === "Banco de Dados" ? "Inspetor de Banco de Dados (SQLite WASM)" : `Opções de ${activeSettingsTab}`}</span>
+                  {activeSettingsTab === "Banco de Dados" && (
+                    <button
+                      onClick={loadDebugDb}
+                      style={{
+                        background: "#1c1c24", border: "1px solid #3a3a44", color: "#eee",
+                        padding: "4px 10px", borderRadius: 4, fontSize: 11, cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 6
+                      }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67" /></svg>
+                      Recarregar
+                    </button>
+                  )}
+                </h4>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #27272a" }}>
-                    <div>
-                      <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Aceleração de Hardware</div>
-                      <div style={{ color: "#888", fontSize: 12 }}>Usa a GPU para renderizar transições suaves sem sobrecarregar a CPU.</div>
+                {activeSettingsTab === "Banco de Dados" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, minHeight: 0 }}>
+                    {/* Stats Row */}
+                    <div style={{ display: "flex", gap: 12 }}>
+                      {[
+                        { label: "Total Registros", val: dbStats.total, color: "#00ffee" },
+                        { label: "Músicas (Songs)", val: dbStats.songs, color: "#c084fc" },
+                        { label: "Slides", val: dbStats.slides, color: "#60a5fa" },
+                        { label: "Mídias de Fundo", val: dbStats.media, color: "#34d399" }
+                      ].map((stat, idx) => (
+                        <div key={idx} style={{ flex: 1, background: "#1c1c20", border: "1px solid #27272f", padding: "10px 14px", borderRadius: 8 }}>
+                          <div style={{ fontSize: 10, color: "#888", marginBottom: 2 }}>{stat.label}</div>
+                          <div style={{ fontSize: 20, fontWeight: 700, color: stat.color }}>{stat.val}</div>
+                        </div>
+                      ))}
                     </div>
-                    <div style={{ width: 44, height: 24, background: "#00ffee", borderRadius: 12, position: "relative", cursor: "pointer" }}>
-                      <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
+
+                    {/* Sub-tab selection */}
+                    <div style={{ display: "flex", borderBottom: "1px solid #27272a", gap: 16 }}>
+                      <button
+                        onClick={() => setDbSubTab("records")}
+                        style={{
+                          background: "transparent", border: "none", borderBottom: dbSubTab === "records" ? "2px solid #00ffee" : "2px solid transparent",
+                          color: dbSubTab === "records" ? "#00ffee" : "#888", padding: "6px 8px 8px 8px", cursor: "pointer", fontSize: 13, fontWeight: 500
+                        }}
+                      >
+                        Registros (`songs`)
+                      </button>
+                      <button
+                        onClick={() => setDbSubTab("console")}
+                        style={{
+                          background: "transparent", border: "none", borderBottom: dbSubTab === "console" ? "2px solid #00ffee" : "2px solid transparent",
+                          color: dbSubTab === "console" ? "#00ffee" : "#888", padding: "6px 8px 8px 8px", cursor: "pointer", fontSize: 13, fontWeight: 500
+                        }}
+                      >
+                        Console SQL Avançado
+                      </button>
+                    </div>
+
+                    {dbSubTab === "records" ? (
+                      <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0, overflow: "hidden" }}>
+                        {/* Records List Column */}
+                        <div style={{ width: "45%", display: "flex", flexDirection: "column", gap: 8, background: "#18181c", borderRadius: 8, border: "1px solid #27272a", padding: 12, overflow: "hidden" }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa" }}>Lista de Músicas e Mídias</span>
+                          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+                            {debugDbSongs.length === 0 ? (
+                              <div style={{ padding: 16, color: "#666", textAlign: "center", fontSize: 12 }}>Nenhum registro no banco.</div>
+                            ) : (
+                              debugDbSongs.map(song => (
+                                <div
+                                  key={song.id}
+                                  onClick={() => setSelectedDebugSong(song)}
+                                  style={{
+                                    padding: "8px 12px", borderRadius: 6, cursor: "pointer",
+                                    background: selectedDebugSong?.id === song.id ? "#27272f" : "#131316",
+                                    border: selectedDebugSong?.id === song.id ? "1px solid #00ffee" : "1px solid #1c1c22",
+                                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                                    transition: "all 0.15s ease"
+                                  }}
+                                >
+                                  <div style={{ minWidth: 0, flex: 1 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 600, color: "#eee", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                      {song.title || song.name}
+                                    </div>
+                                    <div style={{ fontSize: 10, color: "#888", display: "flex", gap: 6, alignItems: "center", marginTop: 2 }}>
+                                      <span style={{ background: "#222", padding: "1px 4px", borderRadius: 2, textTransform: "uppercase", fontSize: 8 }}>{song.type}</span>
+                                      <span>{song.artist || "Sem artista"}</span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (confirm(`Tem certeza que deseja apagar "${song.title || song.name}" do banco de dados SQLite?`)) {
+                                        await DatabaseService.deleteMedia(song.id);
+                                        if (selectedDebugSong?.id === song.id) setSelectedDebugSong(null);
+                                        loadDebugDb();
+                                        // Also trigger update of main list
+                                        DatabaseService.searchSongs(searchQuery).then(list => setMediaList(list));
+                                      }
+                                    }}
+                                    style={{
+                                      background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: 4, display: "flex", alignItems: "center"
+                                    }}
+                                    title="Excluir do SQLite"
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" /></svg>
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Details Column */}
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, background: "#18181c", borderRadius: 8, border: "1px solid #27272a", padding: 16, overflowY: "auto" }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa" }}>Detalhamento da Linha (Campos Brutos)</span>
+                          {selectedDebugSong ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                              <div>
+                                <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>ID (UUID/Chave Primária)</div>
+                                <div style={{ fontSize: 11, fontFamily: "monospace", color: "#00ffee", background: "#131316", padding: 6, borderRadius: 4, border: "1px solid #222", overflowX: "auto" }}>
+                                  {selectedDebugSong.id}
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", gap: 12 }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Título</div>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#131316", padding: 6, borderRadius: 4, border: "1px solid #222" }}>
+                                    {selectedDebugSong.title || selectedDebugSong.name}
+                                  </div>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Artista</div>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#131316", padding: 6, borderRadius: 4, border: "1px solid #222" }}>
+                                    {selectedDebugSong.artist || "[Nulo/Vazio]"}
+                                  </div>
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", gap: 12 }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Tipo de Registro</div>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#131316", padding: 6, borderRadius: 4, border: "1px solid #222", textTransform: "capitalize" }}>
+                                    {selectedDebugSong.type}
+                                  </div>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Duração</div>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#131316", padding: 6, borderRadius: 4, border: "1px solid #222" }}>
+                                    {selectedDebugSong.duration || "[Sem duração]"}
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>URL / Conteúdo do Slide</div>
+                                <div style={{ fontSize: 11, fontFamily: "monospace", color: "#a1a1aa", background: "#131316", padding: 6, borderRadius: 4, border: "1px solid #222", maxHeight: 80, overflowY: "auto", whiteSpace: "pre-wrap" }}>
+                                  {selectedDebugSong.content || "[Vazio]"}
+                                </div>
+                              </div>
+                              {selectedDebugSong.lyrics && (
+                                <div>
+                                  <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Letra da Música (lyrics)</div>
+                                  <div style={{ fontSize: 11, color: "#ddd", background: "#131316", padding: 10, borderRadius: 4, border: "1px solid #222", maxHeight: 150, overflowY: "auto", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif" }}>
+                                    {selectedDebugSong.lyrics}
+                                  </div>
+                                </div>
+                              )}
+                              {selectedDebugSong.created_at && (
+                                <div>
+                                  <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Data de Inserção</div>
+                                  <div style={{ fontSize: 10, color: "#888" }}>
+                                    {new Date(selectedDebugSong.created_at).toLocaleString('pt-BR')}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#555", fontSize: 12, flexDirection: "column", gap: 8 }}>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 17h6M9 12h6M9 7h4" /></svg>
+                              Selecione um registro na lista lateral para inspecionar seus valores internos brutos.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      // CONSOLE SQL TAB
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, minHeight: 0, overflow: "hidden" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa" }}>Console SQL Interativo</span>
+                          <span style={{ fontSize: 10, color: "#666" }}>Digite uma query SQL válida (a tabela se chama <b>songs</b>) e execute diretamente no motor SQLite WASM rodando no Web Worker.</span>
+                        </div>
+                        <div style={{ position: "relative" }}>
+                          <textarea
+                            value={rawQueryText}
+                            onChange={(e) => setRawQueryText(e.target.value)}
+                            style={{
+                              width: "100%", height: 80, background: "#0b0b0d", color: "#a2f6ff",
+                              border: "1px solid #27272a", borderRadius: 6, padding: "8px 12px",
+                              fontFamily: "monospace", fontSize: 12, resize: "none",
+                              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.8)"
+                            }}
+                          />
+                          <button
+                            onClick={async () => {
+                              try {
+                                setRawQueryError(null);
+                                setRawQueryResult(null);
+                                const result = await DatabaseService.runRawQuery(rawQueryText);
+                                setRawQueryResult(result);
+                              } catch (err: any) {
+                                setRawQueryError(err.message);
+                              }
+                            }}
+                            style={{
+                              position: "absolute", bottom: 10, right: 12,
+                              background: "#00ffee", color: "#000", fontWeight: 700,
+                              fontSize: 10, padding: "6px 12px", border: "none", borderRadius: 4,
+                              cursor: "pointer", letterSpacing: 0.5, boxShadow: "0 2px 8px rgba(0,255,238,0.3)"
+                            }}
+                          >
+                            Executar
+                          </button>
+                        </div>
+
+                        {/* Templates Row */}
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: 9, color: "#555", fontWeight: 700 }}>ATALHOS DE BUSCA:</span>
+                          {[
+                            { label: "Ver Tabelas", sql: "SELECT name, sql FROM sqlite_master WHERE type='table';" },
+                            { label: "Ver Todas Músicas", sql: "SELECT * FROM songs ORDER BY title ASC;" },
+                            { label: "Contagem por Tipo", sql: "SELECT type, count(*) as count FROM songs GROUP BY type;" },
+                            { label: "FTS5 Teste MATCH", sql: "SELECT * FROM songs_fts WHERE songs_fts MATCH 'Culto';" }
+                          ].map((t, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setRawQueryText(t.sql)}
+                              style={{
+                                background: "#1c1c20", border: "1px solid #27272f", color: "#a1a1aa",
+                                fontSize: 9, padding: "4px 8px", borderRadius: 4, cursor: "pointer"
+                              }}
+                            >
+                              {t.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* SQL Result Console */}
+                        <div style={{ flex: 1, border: "1px solid #27272a", borderRadius: 8, background: "#18181c", padding: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa", marginBottom: 8 }}>Resultado do Console</span>
+
+                          <div style={{ flex: 1, overflow: "auto" }}>
+                            {rawQueryError && (
+                              <div style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 6, padding: 12, color: "#f87171", fontSize: 11, fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+                                <b>Erro do SQLite WASM:</b> {rawQueryError}
+                              </div>
+                            )}
+
+                            {rawQueryResult && (
+                              rawQueryResult.length === 0 ? (
+                                <div style={{ color: "#888", fontSize: 12, padding: 8 }}>
+                                  Query executada com sucesso. Retornou 0 linhas.
+                                </div>
+                              ) : (
+                                <div style={{ overflowX: "auto" }}>
+                                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, fontFamily: "monospace", color: "#ddd" }}>
+                                    <thead>
+                                      <tr style={{ background: "#27272a", borderBottom: "1px solid #3f3f46" }}>
+                                        {Object.keys(rawQueryResult[0]).map(key => (
+                                          <th key={key} style={{ padding: "8px 10px", textAlign: "left", color: "#00ffee", fontWeight: 600 }}>{key}</th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {rawQueryResult.map((row, rowIdx) => (
+                                        <tr key={rowIdx} style={{ borderBottom: "1px solid #222", background: rowIdx % 2 === 0 ? "#131316" : "transparent" }}>
+                                          {Object.keys(rawQueryResult[0]).map(key => (
+                                            <td key={key} style={{ padding: "6px 10px", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={String(row[key])}>
+                                              {row[key] === null ? <span style={{ color: "#555", fontStyle: "italic" }}>NULL</span> : String(row[key])}
+                                            </td>
+                                          ))}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )
+                            )}
+
+                            {!rawQueryError && !rawQueryResult && (
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#444", fontSize: 11, flexDirection: "column", gap: 4 }}>
+                                Digite sua query SQL e clique no botão "Executar" para inspecionar os dados.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // DUMMY SETTINGS CARDS FOR OTHER TABS
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #27272a" }}>
+                      <div>
+                        <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Tema Escuro Profundo</div>
+                        <div style={{ color: "#888", fontSize: 12 }}>Utiliza tons de preto absoluto (#000) para economizar bateria em telas OLED.</div>
+                      </div>
+                      <div style={{ width: 44, height: 24, background: "#00ffee", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                        <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #27272a" }}>
+                      <div>
+                        <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Aceleração de Hardware</div>
+                        <div style={{ color: "#888", fontSize: 12 }}>Usa a GPU para renderizar transições suaves sem sobrecarregar a CPU.</div>
+                      </div>
+                      <div style={{ width: 44, height: 24, background: "#00ffee", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                        <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
             {/* Modal Footer */}
             <div style={{ padding: "14px 24px", borderTop: "1px solid #27272a", background: "#18181b", display: "flex", justifyContent: "flex-end", gap: 12 }}>
-              <button 
+              <button
                 onClick={() => setIsSettingsOpen(false)}
                 style={{ padding: "8px 16px", background: "transparent", border: "1px solid #3f3f46", color: "#e4e4e7", borderRadius: 6, fontSize: 13, cursor: "pointer" }}
               >
                 Fechar sem Salvar
               </button>
-              <button 
+              <button
                 onClick={() => setIsSettingsOpen(false)}
                 style={{ padding: "8px 16px", background: "#00ffee", border: "none", color: "#000", fontWeight: 600, borderRadius: 6, fontSize: 13, cursor: "pointer" }}
               >
