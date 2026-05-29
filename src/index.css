@@ -28,9 +28,9 @@ body {
   --bg: #fff;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
-  --accent: #FFC300;
-  --accent-bg: rgba(255, 195, 0, 0.1);
-  --accent-border: #FFC300;
+  --accent: #10B981;
+  --accent-bg: rgba(16, 185, 129, 0.1);
+  --accent-border: #10B981;
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
@@ -56,15 +56,15 @@ body {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #94A3B8;
+    --text: #E2E8F0;
     --text-h: #f3f4f6;
-    --bg: #0F172A;
-    --border: #1E293B;
-    --code-bg: #1e293b;
-    --accent: #FFC300;
-    --accent-bg: rgba(255, 195, 0, 0.15);
-    --accent-border: #FFC300;
-    --social-bg: rgba(30, 41, 59, 0.5);
+    --bg: #27272A;
+    --border: #3F3F46;
+    --code-bg: #18181B;
+    --accent: #10B981;
+    --accent-bg: rgba(16, 185, 129, 0.15);
+    --accent-border: #10B981;
+    --social-bg: rgba(63, 63, 70, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
   }
@@ -195,7 +195,7 @@ code {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FFC300;
+  background: #10B981;
 }
 
 /* Pulse animation for simulated video */

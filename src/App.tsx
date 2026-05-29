@@ -334,7 +334,7 @@ export default function App() {
       }}>
         {testText ? (
           <div style={{
-            color: "#FFC300",
+            color: "#10B981",
             fontSize: "clamp(24px, 5vw, 64px)",
             fontWeight: "bold",
             textAlign: "center",
@@ -351,7 +351,7 @@ export default function App() {
 
   // ─────────────────────────────────────────
   return (
-    <div style={{ height: "100%", background: "#0F172A", color: "#94A3B8", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div style={{ height: "100%", background: "#27272A", color: "#E2E8F0", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -362,13 +362,13 @@ export default function App() {
       />
 
       {/* ── TITLEBAR ── */}
-      <div style={{ height: 42, flexShrink: 0, padding: "0 16px", background: "#0B0F19", borderBottom: "1px solid #1E293B", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ height: 42, flexShrink: 0, padding: "0 16px", background: "#18181B", borderBottom: "1px solid #3F3F46", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="/StageVision.png" alt="Logo" style={{ width: 22, height: 22, objectFit: "contain", borderRadius: 4 }} />
           <h2 style={{ margin: 0, fontSize: 13, fontWeight: 700, letterSpacing: 1, color: "#fff" }}>
-            Stage<span style={{ color: "#FFC300" }}>Vision</span>
+            Stage<span style={{ color: "#10B981" }}>Vision</span>
           </h2>
-          <span style={{ fontSize: 9, background: "#1E293B", color: "#94A3B8", padding: "1px 5px", borderRadius: 3 }}>v1.2</span>
+          <span style={{ fontSize: 9, background: "#3F3F46", color: "#E2E8F0", padding: "1px 5px", borderRadius: 3 }}>v1.2</span>
 
           <button
             onClick={() => setIsSettingsOpen(true)}
@@ -384,10 +384,10 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <button onClick={openProjectionWindow}
             style={{
-              background: "#241c00",
-              border: "1px solid #4a3c00",
+              background: "#064e3b",
+              border: "1px solid #047857",
               borderRadius: 6,
-              color: "#FFC300",
+              color: "#10B981",
               padding: "5px 10px",
               fontSize: 10,
               fontWeight: 800,
@@ -398,7 +398,7 @@ export default function App() {
             }}>
             <span>🖥️</span> PROJETAR
           </button>
-          <div style={{ fontSize: 12, fontFamily: "monospace", fontWeight: 700, color: "#FFC300", background: "#241c00", padding: "3px 9px", borderRadius: 4, border: "1px solid #4a3c00" }}>
+          <div style={{ fontSize: 12, fontFamily: "monospace", fontWeight: 700, color: "#10B981", background: "#064e3b", padding: "3px 9px", borderRadius: 4, border: "1px solid #047857" }}>
             {clock}
           </div>
         </div>
@@ -421,12 +421,12 @@ export default function App() {
 
             {/* ── BIBLIOTECA ── */}
             <Panel id="library-panel" defaultSize={25} minSize={10}
-              style={{ background: "#0F172A", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              style={{ background: "#27272A", display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
               {/* Header */}
-              <div style={{ padding: "10px 13px", borderBottom: "1px solid #1E293B", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ padding: "10px 13px", borderBottom: "1px solid #3F3F46", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFC300" strokeWidth="2.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                   </svg>
                   <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1, color: "#aaa", fontWeight: 700 }}>Biblioteca</span>
@@ -447,7 +447,7 @@ export default function App() {
                       × Fechar
                     </button>
                   ) : (
-                    <div style={{ display: "flex", background: "#FFC300", borderRadius: 6, overflow: "hidden", border: "1px solid #FFC300", height: 28, width: 115 }}>
+                    <div style={{ display: "flex", background: "#10B981", borderRadius: 6, overflow: "hidden", border: "1px solid #10B981", height: 28, width: 115 }}>
                       <button
                         onClick={triggerFileImport}
                         style={{
@@ -484,8 +484,8 @@ export default function App() {
                         style={{ position: "fixed", inset: 0, zIndex: 999 }}
                       />
                       <div style={{
-                        position: "absolute", top: 32, right: 0, background: "#1E293B",
-                        border: "1px solid #334155", borderRadius: 6, width: 120,
+                        position: "absolute", top: 32, right: 0, background: "#3F3F46",
+                        border: "1px solid #52525B", borderRadius: 6, width: 120,
                         padding: "4px 0", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.5)",
                         zIndex: 1000, display: "flex", flexDirection: "column"
                       }}>
@@ -512,7 +512,7 @@ export default function App() {
                               textAlign: "left", padding: "8px 12px", fontSize: 11,
                               cursor: "pointer", transition: "background 0.15s"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = "#334155"}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "#52525B"}
                             onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                           >
                             {opt.label}
@@ -526,11 +526,11 @@ export default function App() {
 
               {/* Form */}
               {showAddForm && (
-                <form onSubmit={addMedia} style={{ padding: 9, background: "#1E293B", borderBottom: "1px solid #334155", flexShrink: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+                <form onSubmit={addMedia} style={{ padding: 9, background: "#3F3F46", borderBottom: "1px solid #52525B", flexShrink: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                   <input value={newMediaName} onChange={e => setNewMediaName(e.target.value)} placeholder="Nome" required
-                    style={{ padding: "4px 7px", fontSize: 10, background: "#0F172A", border: "1px solid #334155", borderRadius: 4, color: "white", outline: "none", width: "100%" }} />
+                    style={{ padding: "4px 7px", fontSize: 10, background: "#27272A", border: "1px solid #52525B", borderRadius: 4, color: "white", outline: "none", width: "100%" }} />
                   <select value={newMediaType} onChange={e => setNewMediaType(e.target.value as MediaItem["type"])}
-                    style={{ padding: "4px 7px", fontSize: 10, background: "#0F172A", border: "1px solid #334155", borderRadius: 4, color: "white", outline: "none" }}>
+                    style={{ padding: "4px 7px", fontSize: 10, background: "#27272A", border: "1px solid #52525B", borderRadius: 4, color: "white", outline: "none" }}>
                     <option value="image">Imagem</option>
                     <option value="video">Vídeo</option>
                     <option value="audio">Áudio</option>
@@ -544,32 +544,32 @@ export default function App() {
                   {(newMediaType === "slide" || newMediaType === "image") && (
                     <textarea value={newMediaContent} onChange={e => setNewMediaContent(e.target.value)}
                       placeholder={newMediaType === "slide" ? "Texto..." : "URL da imagem"}
-                      style={{ padding: "4px 7px", fontSize: 10, background: "#0F172A", border: "1px solid #334155", borderRadius: 4, color: "white", outline: "none", resize: "none", height: 40, width: "100%" }} />
+                      style={{ padding: "4px 7px", fontSize: 10, background: "#27272A", border: "1px solid #52525B", borderRadius: 4, color: "white", outline: "none", resize: "none", height: 40, width: "100%" }} />
                   )}
-                  <button type="submit" style={{ padding: "5px 0", background: "#FFC300", border: "none", color: "black", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>
+                  <button type="submit" style={{ padding: "5px 0", background: "#10B981", border: "none", color: "black", borderRadius: 4, cursor: "pointer", fontSize: 10, fontWeight: 800 }}>
                     ADICIONAR
                   </button>
                 </form>
               )}
 
               {/* Busca */}
-              <div style={{ padding: "6px 8px", background: "#0F172A", borderBottom: "1px solid #1E293B", flexShrink: 0 }}>
+              <div style={{ padding: "6px 8px", background: "#27272A", borderBottom: "1px solid #3F3F46", flexShrink: 0 }}>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Buscar na biblioteca (FTS5)..."
-                  style={{ width: "100%", padding: "5px 8px", fontSize: 10, background: "#1E293B", border: "1px solid #334155", borderRadius: 4, color: "white", outline: "none" }}
+                  style={{ width: "100%", padding: "5px 8px", fontSize: 10, background: "#3F3F46", border: "1px solid #52525B", borderRadius: 4, color: "white", outline: "none" }}
                 />
               </div>
 
               {/* Filtros */}
-              <div style={{ display: "flex", gap: 3, padding: "6px 8px", overflowX: "auto", flexShrink: 0, borderBottom: "1px solid #1E293B", background: "#0B0F19" }}>
+              <div style={{ display: "flex", gap: 3, padding: "6px 8px", overflowX: "auto", flexShrink: 0, borderBottom: "1px solid #3F3F46", background: "#18181B" }}>
                 {(["all", "image", "video", "slide", "audio", "music", "sequence", "collection", "tempo", "arquivo"] as const).map(cat => (
                   <button key={cat} onClick={() => setActiveCategory(cat)}
                     style={{
                       padding: "3px 7px", fontSize: 8, fontWeight: 700, textTransform: "uppercase", borderRadius: 10, border: "none", cursor: "pointer", flexShrink: 0,
-                      background: activeCategory === cat ? "#FFC300" : "#1E293B",
+                      background: activeCategory === cat ? "#10B981" : "#3F3F46",
                       color: activeCategory === cat ? "black" : "#aaa", transition: "all 0.15s"
                     }}>
                     {cat === "all" ? "TODOS" : cat === "image" ? "IMAGEM" : cat === "video" ? "VÍDEO" : cat === "slide" ? "SLIDE" : cat === "audio" ? "ÁUDIO" : cat === "music" ? "LETRAS" : cat === "sequence" ? "SEQUÊNCIA" : cat === "collection" ? "COLEÇÃO" : cat === "tempo" ? "TEMPO" : "ARQUIVO"}
@@ -584,7 +584,7 @@ export default function App() {
                     <div key={item.id} onClick={() => selectMedia(item)} className="media-item"
                       style={{
                         padding: "7px 9px",
-                        background: "#1E293B",
+                        background: "#3F3F46",
                         borderRadius: 5,
                         cursor: "pointer",
                         display: "flex",
@@ -634,7 +634,7 @@ export default function App() {
                               <div style={{ position: "fixed", inset: 0, zIndex: 998 }} onClick={(e) => { e.stopPropagation(); setMenuOpenId(null); }} />
                               <div style={{
                                 position: "absolute", top: "100%", right: 0, marginTop: 4,
-                                background: "#1E293B", border: "1px solid #334155", borderRadius: 6,
+                                background: "#3F3F46", border: "1px solid #52525B", borderRadius: 6,
                                 padding: "4px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)", zIndex: 999,
                                 minWidth: 100
                               }}>
@@ -645,7 +645,7 @@ export default function App() {
                                     textAlign: "left", padding: "6px 12px", fontSize: 11,
                                     cursor: "pointer", borderRadius: 4, display: "flex", alignItems: "center", gap: 6
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = "#334155"}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = "#52525B"}
                                   onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                                 >
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -675,7 +675,7 @@ export default function App() {
 
             {/* ── ÁREA DOS MONITORES ── */}
             <Panel id="monitors-panel" defaultSize={50} minSize={30}
-              style={{ display: "flex", flexDirection: "column", overflow: "hidden", background: "#0F172A" }}>
+              style={{ display: "flex", flexDirection: "column", overflow: "hidden", background: "#27272A" }}>
 
               {/* Preview + Botões + Program — verticalmente centrado */}
               <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center", padding: "14px 16px", gap: 14, overflow: "hidden" }}>
@@ -693,7 +693,7 @@ export default function App() {
                       width: "min(100cqw, calc(100cqh * 16 / 9))",
                       height: "min(100cqh, calc(100cqw * 9 / 16))",
                       position: "relative",
-                      border: "1px solid #1E293B",
+                      border: "1px solid #3F3F46",
                       borderRadius: 0,
                       overflow: "hidden",
                       background: "#000"
@@ -708,7 +708,7 @@ export default function App() {
                   <button onClick={executeFade} disabled={isTransitioning}
                     style={{
                       width: "100%", padding: "11px 0",
-                      background: isTransitioning ? "#4a3c00" : "#FFC300",
+                      background: isTransitioning ? "#065f46" : "#10B981",
                       border: "none", borderRadius: 6, color: isTransitioning ? "#888" : "black", fontWeight: 800, fontSize: 11, letterSpacing: 1,
                       cursor: isTransitioning ? "not-allowed" : "pointer"
                     }}>
@@ -716,8 +716,8 @@ export default function App() {
                   </button>
                   <button onClick={executeCut} disabled={isTransitioning}
                     style={{
-                      width: "100%", padding: "11px 0", background: "#1E293B",
-                      border: "1px solid #334155", borderRadius: 6, color: "white", fontWeight: 800, fontSize: 11, letterSpacing: 1,
+                      width: "100%", padding: "11px 0", background: "#3F3F46",
+                      border: "1px solid #52525B", borderRadius: 6, color: "white", fontWeight: 800, fontSize: 11, letterSpacing: 1,
                       cursor: isTransitioning ? "not-allowed" : "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.5)"
                     }}>
                     CUT
@@ -747,7 +747,7 @@ export default function App() {
                       width: "min(100cqw, calc(100cqh * 16 / 9))",
                       height: "min(100cqh, calc(100cqw * 9 / 16))",
                       position: "relative",
-                      border: "1px solid #1E293B",
+                      border: "1px solid #3F3F46",
                       borderRadius: 0,
                       overflow: "hidden",
                       background: "#000"
@@ -772,10 +772,10 @@ export default function App() {
 
         {/* ── PAINEL INFERIOR — largura total ── */}
         <Panel id="bottom-panel" defaultSize={40} minSize={15}
-          style={{ background: "#0F172A", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          style={{ background: "#27272A", display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
           {/* Header */}
-          <div style={{ height: 34, flexShrink: 0, padding: "0 14px", borderBottom: "1px solid #1E293B", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ height: 34, flexShrink: 0, padding: "0 14px", borderBottom: "1px solid #3F3F46", display: "flex", alignItems: "center", gap: 8 }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
             </svg>
@@ -812,13 +812,13 @@ export default function App() {
           display: "flex", alignItems: "center", justifyContent: "center"
         }}>
           <div style={{
-            width: "85vw", maxWidth: 900, height: "80vh", maxHeight: 650,
-            background: "#0F172A", borderRadius: 12, border: "1px solid #1E293B",
+            width: "85vw", maxWidth: 900, height: "88vh",
+            background: "#27272A", borderRadius: 12, border: "1px solid #3F3F46",
             display: "flex", flexDirection: "column", overflow: "hidden",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)"
           }}>
             {/* Modal Header */}
-            <div style={{ padding: "14px 20px", borderBottom: "1px solid #1E293B", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0B0F19" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #3F3F46", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#18181B" }}>
               <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#eee" }}>Configurações - {activeSettingsTab}</h3>
               <button onClick={() => setIsSettingsOpen(false)} style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
@@ -828,15 +828,15 @@ export default function App() {
             {/* Modal Body */}
             <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
               {/* Sidebar */}
-              <div style={{ width: 220, background: "#0B0F19", borderRight: "1px solid #1E293B", padding: "16px 0", overflowY: "auto" }}>
+              <div style={{ width: 220, background: "#18181B", borderRight: "1px solid #3F3F46", padding: "16px 0", overflowY: "auto" }}>
                 {(["Geral", "Conta", "Permissões", "Aparência", "Notificações", "Atalhos", "Banco de Dados", "Avançado"]).map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveSettingsTab(tab)}
                     style={{
                       width: "100%", textAlign: "left", padding: "8px 24px",
-                      background: activeSettingsTab === tab ? "#1E293B" : "transparent",
-                      border: "none", color: activeSettingsTab === tab ? "#FFC300" : "#94A3B8",
+                      background: activeSettingsTab === tab ? "#3F3F46" : "transparent",
+                      border: "none", color: activeSettingsTab === tab ? "#10B981" : "#E2E8F0",
                       fontSize: 13, cursor: "pointer", transition: "background 0.2s"
                     }}
                   >
@@ -846,14 +846,14 @@ export default function App() {
               </div>
 
               {/* Content Area */}
-              <div style={{ flex: 1, background: "#0F172A", padding: "24px 32px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+              <div style={{ flex: 1, background: "#27272A", padding: "24px 32px", overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
                 <h4 style={{ margin: "0 0 16px 0", color: "#fff", fontSize: 16, fontWeight: 500, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>{activeSettingsTab === "Banco de Dados" ? "Inspetor de Banco de Dados (SQLite WASM)" : `Opções de ${activeSettingsTab}`}</span>
                   {activeSettingsTab === "Banco de Dados" && (
                     <button
                       onClick={loadDebugDb}
                       style={{
-                        background: "#1E293B", border: "1px solid #334155", color: "#eee",
+                        background: "#3F3F46", border: "1px solid #52525B", color: "#eee",
                         padding: "4px 10px", borderRadius: 4, fontSize: 11, cursor: "pointer",
                         display: "flex", alignItems: "center", gap: 6
                       }}
@@ -865,16 +865,16 @@ export default function App() {
                 </h4>
 
                 {activeSettingsTab === "Banco de Dados" ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, minHeight: 0 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     {/* Stats Row */}
                     <div style={{ display: "flex", gap: 12 }}>
                       {[
-                        { label: "Total Registros", val: dbStats.total, color: "#FFC300" },
+                        { label: "Total Registros", val: dbStats.total, color: "#10B981" },
                         { label: "Músicas (Songs)", val: dbStats.songs, color: "#c084fc" },
                         { label: "Slides", val: dbStats.slides, color: "#60a5fa" },
                         { label: "Mídias de Fundo", val: dbStats.media, color: "#34d399" }
                       ].map((stat, idx) => (
-                        <div key={idx} style={{ flex: 1, background: "#1E293B", border: "1px solid #334155", padding: "10px 14px", borderRadius: 8 }}>
+                        <div key={idx} style={{ flex: 1, background: "#3F3F46", border: "1px solid #52525B", padding: "10px 14px", borderRadius: 8 }}>
                           <div style={{ fontSize: 10, color: "#888", marginBottom: 2 }}>{stat.label}</div>
                           <div style={{ fontSize: 20, fontWeight: 700, color: stat.color }}>{stat.val}</div>
                         </div>
@@ -882,12 +882,12 @@ export default function App() {
                     </div>
 
                     {/* Sub-tab selection */}
-                    <div style={{ display: "flex", borderBottom: "1px solid #1E293B", gap: 16 }}>
+                    <div style={{ display: "flex", borderBottom: "1px solid #3F3F46", gap: 16 }}>
                       <button
                         onClick={() => setDbSubTab("records")}
                         style={{
-                          background: "transparent", border: "none", borderBottom: dbSubTab === "records" ? "2px solid #FFC300" : "2px solid transparent",
-                          color: dbSubTab === "records" ? "#FFC300" : "#888", padding: "6px 8px 8px 8px", cursor: "pointer", fontSize: 13, fontWeight: 500
+                          background: "transparent", border: "none", borderBottom: dbSubTab === "records" ? "2px solid #10B981" : "2px solid transparent",
+                          color: dbSubTab === "records" ? "#10B981" : "#888", padding: "6px 8px 8px 8px", cursor: "pointer", fontSize: 13, fontWeight: 500
                         }}
                       >
                         Registros (`songs`)
@@ -895,8 +895,8 @@ export default function App() {
                       <button
                         onClick={() => setDbSubTab("console")}
                         style={{
-                          background: "transparent", border: "none", borderBottom: dbSubTab === "console" ? "2px solid #FFC300" : "2px solid transparent",
-                          color: dbSubTab === "console" ? "#FFC300" : "#888", padding: "6px 8px 8px 8px", cursor: "pointer", fontSize: 13, fontWeight: 500
+                          background: "transparent", border: "none", borderBottom: dbSubTab === "console" ? "2px solid #10B981" : "2px solid transparent",
+                          color: dbSubTab === "console" ? "#10B981" : "#888", padding: "6px 8px 8px 8px", cursor: "pointer", fontSize: 13, fontWeight: 500
                         }}
                       >
                         Console SQL Avançado
@@ -904,9 +904,9 @@ export default function App() {
                     </div>
 
                     {dbSubTab === "records" ? (
-                      <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0, overflow: "hidden" }}>
+                      <div style={{ display: "flex", gap: 16, minHeight: 400 }}>
                         {/* Records List Column */}
-                        <div style={{ width: "45%", display: "flex", flexDirection: "column", gap: 8, background: "#1E293B", borderRadius: 8, border: "1px solid #334155", padding: 12, overflow: "hidden" }}>
+                        <div style={{ width: "45%", display: "flex", flexDirection: "column", gap: 8, background: "#3F3F46", borderRadius: 8, border: "1px solid #52525B", padding: 12, overflow: "hidden", maxHeight: 420 }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa" }}>Lista de Músicas e Mídias</span>
                           <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
                             {debugDbSongs.length === 0 ? (
@@ -918,8 +918,8 @@ export default function App() {
                                   onClick={() => setSelectedDebugSong(song)}
                                   style={{
                                     padding: "8px 12px", borderRadius: 6, cursor: "pointer",
-                                    background: selectedDebugSong?.id === song.id ? "#334155" : "#0F172A",
-                                    border: selectedDebugSong?.id === song.id ? "1px solid #FFC300" : "1px solid #1E293B",
+                                    background: selectedDebugSong?.id === song.id ? "#52525B" : "#27272A",
+                                    border: selectedDebugSong?.id === song.id ? "1px solid #10B981" : "1px solid #3F3F46",
                                     display: "flex", justifyContent: "space-between", alignItems: "center",
                                     transition: "all 0.15s ease"
                                   }}
@@ -958,26 +958,26 @@ export default function App() {
                         </div>
 
                         {/* Details Column */}
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, background: "#1E293B", borderRadius: 8, border: "1px solid #334155", padding: 16, overflowY: "auto" }}>
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, background: "#3F3F46", borderRadius: 8, border: "1px solid #52525B", padding: 16, overflowY: "auto", maxHeight: 420 }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa" }}>Detalhamento da Linha (Campos Brutos)</span>
                           {selectedDebugSong ? (
                             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                               <div>
                                 <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>ID (UUID/Chave Primária)</div>
-                                <div style={{ fontSize: 11, fontFamily: "monospace", color: "#FFC300", background: "#0F172A", padding: 6, borderRadius: 4, border: "1px solid #1E293B", overflowX: "auto" }}>
+                                <div style={{ fontSize: 11, fontFamily: "monospace", color: "#10B981", background: "#27272A", padding: 6, borderRadius: 4, border: "1px solid #3F3F46", overflowX: "auto" }}>
                                   {selectedDebugSong.id}
                                 </div>
                               </div>
                               <div style={{ display: "flex", gap: 12 }}>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Título</div>
-                                  <div style={{ fontSize: 12, color: "#fff", background: "#0F172A", padding: 6, borderRadius: 4, border: "1px solid #1E293B" }}>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#27272A", padding: 6, borderRadius: 4, border: "1px solid #3F3F46" }}>
                                     {selectedDebugSong.title || selectedDebugSong.name}
                                   </div>
                                 </div>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Artista</div>
-                                  <div style={{ fontSize: 12, color: "#fff", background: "#0F172A", padding: 6, borderRadius: 4, border: "1px solid #1E293B" }}>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#27272A", padding: 6, borderRadius: 4, border: "1px solid #3F3F46" }}>
                                     {selectedDebugSong.artist || "[Nulo/Vazio]"}
                                   </div>
                                 </div>
@@ -985,27 +985,27 @@ export default function App() {
                               <div style={{ display: "flex", gap: 12 }}>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Tipo de Registro</div>
-                                  <div style={{ fontSize: 12, color: "#fff", background: "#0F172A", padding: 6, borderRadius: 4, border: "1px solid #1E293B", textTransform: "capitalize" }}>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#27272A", padding: 6, borderRadius: 4, border: "1px solid #3F3F46", textTransform: "capitalize" }}>
                                     {selectedDebugSong.type}
                                   </div>
                                 </div>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Duração</div>
-                                  <div style={{ fontSize: 12, color: "#fff", background: "#0F172A", padding: 6, borderRadius: 4, border: "1px solid #1E293B" }}>
+                                  <div style={{ fontSize: 12, color: "#fff", background: "#27272A", padding: 6, borderRadius: 4, border: "1px solid #3F3F46" }}>
                                     {selectedDebugSong.duration || "[Sem duração]"}
                                   </div>
                                 </div>
                               </div>
                               <div>
                                 <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>URL / Conteúdo do Slide</div>
-                                <div style={{ fontSize: 11, fontFamily: "monospace", color: "#a1a1aa", background: "#0F172A", padding: 6, borderRadius: 4, border: "1px solid #1E293B", maxHeight: 80, overflowY: "auto", whiteSpace: "pre-wrap" }}>
+                                <div style={{ fontSize: 11, fontFamily: "monospace", color: "#a1a1aa", background: "#27272A", padding: 6, borderRadius: 4, border: "1px solid #3F3F46", maxHeight: 80, overflowY: "auto", whiteSpace: "pre-wrap" }}>
                                   {selectedDebugSong.content || "[Vazio]"}
                                 </div>
                               </div>
                               {selectedDebugSong.lyrics && (
                                 <div>
                                   <div style={{ fontSize: 9, color: "#555", fontWeight: 700, textTransform: "uppercase" }}>Letra da Música (lyrics)</div>
-                                  <div style={{ fontSize: 11, color: "#ddd", background: "#0F172A", padding: 10, borderRadius: 4, border: "1px solid #1E293B", maxHeight: 150, overflowY: "auto", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif" }}>
+                                  <div style={{ fontSize: 11, color: "#ddd", background: "#27272A", padding: 10, borderRadius: 4, border: "1px solid #3F3F46", maxHeight: 150, overflowY: "auto", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif" }}>
                                     {selectedDebugSong.lyrics}
                                   </div>
                                 </div>
@@ -1029,7 +1029,7 @@ export default function App() {
                       </div>
                     ) : (
                       // CONSOLE SQL TAB
-                      <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, minHeight: 0, overflow: "hidden" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa" }}>Console SQL Interativo</span>
                           <span style={{ fontSize: 10, color: "#666" }}>Digite uma query SQL válida (a tabela se chama <b>songs</b>) e execute diretamente no motor SQLite WASM rodando no Web Worker.</span>
@@ -1039,8 +1039,8 @@ export default function App() {
                             value={rawQueryText}
                             onChange={(e) => setRawQueryText(e.target.value)}
                             style={{
-                              width: "100%", height: 80, background: "#0F172A", color: "#a2f6ff",
-                              border: "1px solid #334155", borderRadius: 6, padding: "8px 12px",
+                              width: "100%", height: 80, background: "#27272A", color: "#a2f6ff",
+                              border: "1px solid #52525B", borderRadius: 6, padding: "8px 12px",
                               fontFamily: "monospace", fontSize: 12, resize: "none",
                               boxShadow: "inset 0 2px 4px rgba(0,0,0,0.8)"
                             }}
@@ -1058,9 +1058,9 @@ export default function App() {
                             }}
                             style={{
                               position: "absolute", bottom: 10, right: 12,
-                              background: "#FFC300", color: "#000", fontWeight: 700,
+                              background: "#10B981", color: "#000", fontWeight: 700,
                               fontSize: 10, padding: "6px 12px", border: "none", borderRadius: 4,
-                              cursor: "pointer", letterSpacing: 0.5, boxShadow: "0 2px 8px rgba(255,195,0,0.3)"
+                              cursor: "pointer", letterSpacing: 0.5, boxShadow: "0 2px 8px rgba(16,185,129,0.3)"
                             }}
                           >
                             Executar
@@ -1080,7 +1080,7 @@ export default function App() {
                               key={idx}
                               onClick={() => setRawQueryText(t.sql)}
                               style={{
-                                background: "#1E293B", border: "1px solid #334155", color: "#a1a1aa",
+                                background: "#3F3F46", border: "1px solid #52525B", color: "#a1a1aa",
                                 fontSize: 9, padding: "4px 8px", borderRadius: 4, cursor: "pointer"
                               }}
                             >
@@ -1090,7 +1090,7 @@ export default function App() {
                         </div>
 
                         {/* SQL Result Console */}
-                        <div style={{ flex: 1, border: "1px solid #334155", borderRadius: 8, background: "#1E293B", padding: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                        <div style={{ flex: 1, border: "1px solid #52525B", borderRadius: 8, background: "#3F3F46", padding: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "#a1a1aa", marginBottom: 8 }}>Resultado do Console</span>
 
                           <div style={{ flex: 1, overflow: "auto" }}>
@@ -1109,15 +1109,15 @@ export default function App() {
                                 <div style={{ overflowX: "auto" }}>
                                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, fontFamily: "monospace", color: "#ddd" }}>
                                     <thead>
-                                      <tr style={{ background: "#334155", borderBottom: "1px solid #475569" }}>
+                                      <tr style={{ background: "#52525B", borderBottom: "1px solid #475569" }}>
                                         {Object.keys(rawQueryResult[0]).map(key => (
-                                          <th key={key} style={{ padding: "8px 10px", textAlign: "left", color: "#FFC300", fontWeight: 600 }}>{key}</th>
+                                          <th key={key} style={{ padding: "8px 10px", textAlign: "left", color: "#10B981", fontWeight: 600 }}>{key}</th>
                                         ))}
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {rawQueryResult.map((row, rowIdx) => (
-                                        <tr key={rowIdx} style={{ borderBottom: "1px solid #1E293B", background: rowIdx % 2 === 0 ? "#0F172A" : "transparent" }}>
+                                        <tr key={rowIdx} style={{ borderBottom: "1px solid #3F3F46", background: rowIdx % 2 === 0 ? "#27272A" : "transparent" }}>
                                           {Object.keys(rawQueryResult[0]).map(key => (
                                             <td key={key} style={{ padding: "6px 10px", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={String(row[key])}>
                                               {row[key] === null ? <span style={{ color: "#555", fontStyle: "italic" }}>NULL</span> : String(row[key])}
@@ -1144,22 +1144,22 @@ export default function App() {
                 ) : (
                   // DUMMY SETTINGS CARDS FOR OTHER TABS
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #1E293B" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #3F3F46" }}>
                       <div>
                         <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Tema Escuro Profundo</div>
                         <div style={{ color: "#888", fontSize: 12 }}>Utiliza tons de preto absoluto (#000) para economizar bateria em telas OLED.</div>
                       </div>
-                      <div style={{ width: 44, height: 24, background: "#FFC300", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                      <div style={{ width: 44, height: 24, background: "#10B981", borderRadius: 12, position: "relative", cursor: "pointer" }}>
                         <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #1E293B" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 20, borderBottom: "1px solid #3F3F46" }}>
                       <div>
                         <div style={{ color: "#eee", fontSize: 14, marginBottom: 4 }}>Aceleração de Hardware</div>
                         <div style={{ color: "#888", fontSize: 12 }}>Usa a GPU para renderizar transições suaves sem sobrecarregar a CPU.</div>
                       </div>
-                      <div style={{ width: 44, height: 24, background: "#FFC300", borderRadius: 12, position: "relative", cursor: "pointer" }}>
+                      <div style={{ width: 44, height: 24, background: "#10B981", borderRadius: 12, position: "relative", cursor: "pointer" }}>
                         <div style={{ width: 20, height: 20, background: "#000", borderRadius: "50%", position: "absolute", top: 2, right: 2 }}></div>
                       </div>
                     </div>
@@ -1169,16 +1169,16 @@ export default function App() {
             </div>
 
             {/* Modal Footer */}
-            <div style={{ padding: "14px 24px", borderTop: "1px solid #1E293B", background: "#0B0F19", display: "flex", justifyContent: "flex-end", gap: 12 }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid #3F3F46", background: "#18181B", display: "flex", justifyContent: "flex-end", gap: 12 }}>
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                style={{ padding: "8px 16px", background: "transparent", border: "1px solid #334155", color: "#e4e4e7", borderRadius: 6, fontSize: 13, cursor: "pointer" }}
+                style={{ padding: "8px 16px", background: "transparent", border: "1px solid #52525B", color: "#e4e4e7", borderRadius: 6, fontSize: 13, cursor: "pointer" }}
               >
                 Fechar sem Salvar
               </button>
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                style={{ padding: "8px 16px", background: "#FFC300", border: "none", color: "#000", fontWeight: 600, borderRadius: 6, fontSize: 13, cursor: "pointer" }}
+                style={{ padding: "8px 16px", background: "#10B981", border: "none", color: "#000", fontWeight: 600, borderRadius: 6, fontSize: 13, cursor: "pointer" }}
               >
                 Salvar Alterações
               </button>
