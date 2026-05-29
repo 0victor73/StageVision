@@ -2,7 +2,7 @@
 
 O **StageVision** é um software web profissional de projeção e apresentação multimídia em tempo real. Inspirado em ferramentas líderes de mercado como **ProPresenter**, **Holyrics** e **FreeShow**, ele foi projetado com foco em alta performance, usabilidade limpa e responsividade absoluta, sendo ideal para controle de projeções em templos religiosos, conferências, eventos e apresentações ao vivo.
 
-Toda a interface é construída sob uma estética escura cibernética moderna, utilizando o ciano **`#00ffee`** como cor de identidade principal.
+Toda a interface é construída sob uma estética escura cibernética moderna, utilizando o cinza azulado **`#94A3B8`** para os textos, o slate profundo **`#0F172A`** como fundo e o amarelo dourado **`#FFC300`** como cor de identidade principal e destaque (accent color).
 
 ---
 
